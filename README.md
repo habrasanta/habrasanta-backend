@@ -1,7 +1,34 @@
-This repository contains the source code of [habra-adm.ru](https://habra-adm.ru).
+# Habrasanta backend
 
-This is a very legacy version, yet still in production. A newer version
-rewritten in TypeScript from scratch (using Spring MVC on back-end) is coming
-soon.
+## Testing without installation
 
-[![Build Status](https://travis-ci.org/clubadm/clubadm.svg?branch=master)](https://travis-ci.org/clubadm/clubadm)
+Visit https://beta.habrasanta.org
+
+## Running locally
+
+```bash
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip install -r requirements.txt
+$ docker run --rm -p 6379:6379 redis:alpine
+$ python manage.py migrate
+$ python manage.py runserver
+```
+
+To match addresses or schedule chat notifications:
+
+```bash
+$ python manage.py cron
+```
+
+To send out notifications:
+
+```bash
+$ celery -A habrasanta worker -P solo -l INFO
+```
+
+To make sure it still works:
+
+```bash
+$ python manage.py test
+```
