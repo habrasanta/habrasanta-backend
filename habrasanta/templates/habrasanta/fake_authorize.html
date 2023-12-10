@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>Fake-Хабр</title>
+    <link rel="stylesheet" href="{% static 'habrasanta/fake_authorize.css' %}">
+  </head>
+  <body>
+    <div class="header">
+      <div class="header__inner">
+        <div class="header__logo"></div>
+        <div class="header__logout">Выйти</div>
+      </div>
+    </div>
+    {% with name="Хабра-АДМ" description="Клуб анонимных Дедов Морозов на Хабре." %}
+      {% with developer="kafeman, negasus и другие контрибьютеры на GitHub &mdash; возможно, и вы тоже." %}
+        <div class="content">
+          <form class="form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="state" value="{{ state }}">
+            <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+            <h2 class="form__title">Авторизация приложения</h2>
+            <div class="form__description">
+              {{ name }} запрашивает доступ к вашему аккаунту
+            </div>
+            <div class="about about_mobile">
+              <div class="about__header">
+                <div class="about__icon"></div>
+                <div class="about__name">{{ name }}</div>
+                <div class="about__developer">{{ developer }}</div>
+                <div class="about__description">{{ description }}</div>
+                <div class="about__link">
+                  <a href="#">Сайт разработчика</a>
+                </div>
+              </div>
+            </div>
+            <h4>Приложение <span class="allow">может:</span></h4>
+            <ul>
+              <li>Читать Хабр</li>
+              <li>Писать в трекер</li>
+            </ul>
+            <h4>Приложение <span class="disallow">не может:</span></h4>
+            <ul>
+              <li>Редактировать закладки</li>
+              <li>Писать комментарии</li>
+              <li>Голосовать</li>
+            </ul>
+            <h4>Имя пользователя:</h4>
+            <input class="input" type="text" name="username" value="kafeman" />
+            <div class="input__help">
+              Это тестовая версия {{ name }}, реальный запрос прав отключен.
+              Введите имя любого пользователя Хабра (пользователь должен существовать).
+            </div>
+            <div class="form__actions">
+              <button class="button button-primary" type="submit">Разрешить</button>
+              <button class="button button-secondary" type="button">Запретить</button>
+            </div>
+          </form>
+          <div class="about about_desktop">
+            <div class="about__header">
+              <div class="about__icon"></div>
+              <div class="about__name">{{ name }}</div>
+            </div>
+            <div class="about__card">
+              <div class="about__description-label">Описание</div>
+              <div class="about__description">{{ description }}</div>
+              <div class="about__developer-label">Разработчик</div>
+              <div class="about__developer">{{ developer }}</div>
+              <div class="about__link">
+                <a href="#">Сайт разработчика</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endwith %}
+    {% endwith %}
+    <div class="footer">
+      <div class="footer__inner">
+        &copy; {% now "Y" %}
+      </div>
+    </div>
+  </body>
+</html>
