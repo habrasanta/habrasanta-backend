@@ -4,6 +4,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models import Count, F
 from django.db.models.functions import Coalesce
+from functools import reduce
 
 from habrasanta.celery import send_email, send_notification
 from habrasanta.models import Season, Message, User, Participation
@@ -36,6 +37,8 @@ class Command(BaseCommand):
                     participants = participants.filter(country__in=cluster)
                 else:
                     self.stdout.write("Gonna match default cluster...")
+                    exclude = reduce(lambda x, y: x + y, clusters)
+                    participants = participants.exclude(country__in=exclude)
                 if len(participants) < 3:
                     if len(participants) > 0:
                         self.stdout.write(self.style.ERROR(
