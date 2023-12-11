@@ -43,7 +43,7 @@ class User(models.Model):
 
     @property
     def is_active(self):
-        return not self.is_banned
+        return True
 
     @property
     def is_staff(self):
@@ -129,7 +129,7 @@ class User(models.Model):
 
     @property
     def can_participate(self):
-        return self.is_active and not self.is_readonly and (
+        return not self.is_banned and not self.is_readonly and (
             self.karma >= settings.HABRASANTA_KARMA_LIMIT or self.has_badge)
 
 

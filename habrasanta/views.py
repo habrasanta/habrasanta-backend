@@ -620,7 +620,7 @@ class InfoView(APIView):
                 data["karma"] = request.user.karma
                 data["is_readonly"] = request.user.is_readonly
                 data["has_badge"] = request.user.has_badge
-                data["is_active"] = request.user.is_active
+                data["is_active"] = not request.user.is_banned
                 data["can_participate"] = request.user.can_participate
             except requests.exceptions.Timeout as e:
                 return Response({ "error": str(e) }, status=504)
