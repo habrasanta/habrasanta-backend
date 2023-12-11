@@ -6,8 +6,6 @@ from celery.exceptions import Reject
 from django.conf import settings
 from django.core.mail import EmailMessage
 
-from habrasanta.utils import session
-
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "habrasanta.settings")
 
@@ -20,6 +18,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 @app.task
 def send_notification(user_id, message):
     from habrasanta.models import User
+    from habrasanta.utils import session
     user = User.objects.get(pk=user_id)
     if not user.habr_token:
         raise Reject("The access token of user '{}' is unknown".format(user.login))
