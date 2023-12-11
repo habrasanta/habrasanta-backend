@@ -44,7 +44,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(
                             "Not enough participants to match cluster {} in season {}!".format(",".join(cluster), season.id)
                         ))
-                    return # Nothing to do.
+                    continue # Nothing to do.
                 last = len(participants) - 1
                 for i, participant in enumerate(participants):
                     if i == last:
