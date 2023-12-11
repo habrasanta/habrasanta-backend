@@ -73,8 +73,8 @@ class FakeBackend(ModelBackend):
         if not profile:
             return None
         try:
-            user = User.objects.get(login=username)
+            user = User.objects.get(login__iexact=username)
         except User.DoesNotExist:
-            user = User(login=username)
+            user = User(login=profile["login"])
             user.save()
         return user

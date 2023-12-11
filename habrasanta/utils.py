@@ -30,6 +30,7 @@ def fetch_habr_profile(username):
         end = time.time()
         print("Fetched Habr user '{}' in {:.3f} ms.".format(username, (end - start) * 1000))
         profile = {
+            "login": card["alias"],
             "avatar_url": card["avatarUrl"],
             "karma": card["scoreStats"]["score"],
             "has_badge": len([x for x in whois["badgets"] if x["title"] == "Дед Мороз"]) > 0,
