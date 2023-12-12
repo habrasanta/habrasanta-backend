@@ -15,6 +15,7 @@ RUN apk add --no-cache libpq libc-dev linux-headers postgresql-dev \
     && apk del libc-dev linux-headers postgresql-dev
 
 COPY habrasanta ./habrasanta
-RUN python -m compileall habrasanta
+RUN python -m compileall habrasanta && \
+    python manage.py collectstatic --no-input
 
 CMD ["uwsgi", "--threads=2", "--uwsgi-socket=:9090", "--static-map=/static=/app/staticfiles", "--module=habrasanta.wsgi"]
