@@ -5,16 +5,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: python:3.9-alpine
     services:
       redis:
         image: redis:alpine
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
       - name: Install dependencies
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
       - name: Run tests
         run: python manage.py test
         env:
