@@ -52,7 +52,7 @@ class SantaSerializer(serializers.ModelSerializer):
 class GifteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participation
-        fields = ["fullname", "postcode", "address", "gift_delivered_at"]
+        fields = ["fullname", "postcode", "address", "country", "gift_delivered_at"]
         read_only_fields = fields
 
 
