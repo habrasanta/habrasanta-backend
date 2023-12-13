@@ -94,7 +94,7 @@ class Command(BaseCommand):
                 )
                 transaction.on_commit(send_notification.s(
                     result["recipient__user"],
-                    "Вам прислали <b>{}</b> {}".format(result["cnt"], plural) +
+                    "Вам прислали <b>{}</b> {} ".format(result["cnt"], plural) +
                     "- не тяните с прочтением, наверняка там что-то важное!"
                 ).delay)
                 transaction.on_commit(send_email.s(
