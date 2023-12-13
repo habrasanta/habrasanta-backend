@@ -128,7 +128,7 @@ LOGIN_URL = "login"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "habrasanta.User"
-AUTHENTICATION_BACKENDS = ["habrasanta.auth.FakeBackend"]
+AUTHENTICATION_BACKENDS = [os.getenv("AUTHENTICATION_BACKEND", "habrasanta.auth.FakeBackend")]
 
 HABR_CLIENT_ID = os.getenv("HABR_CLIENT_ID", "")
 HABR_CLIENT_SECRET = os.getenv("HABR_CLIENT_SECRET", "")
