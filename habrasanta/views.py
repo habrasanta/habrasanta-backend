@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import F, Q
+from django.db.models import Count, F, Q
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
@@ -389,6 +389,23 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         season = self.get_object()
         serializer = self.get_serializer(season.events, many=True)
         return Response(serializer.data)
+
+    @action(detail=True)
+    @method_decorator(cache_control(public=True))
+    def countries(self, request, pk):
+        """
+        Shows country statistics for the given season.
+        """
+        season = self.get_object()
+        stats = Participation.objects.filter(
+            season=season,
+        ).values("country").annotate(
+            count=Count("id"),
+        ).order_by("-count", "country")
+        result = {}
+        for item in stats:
+            result[item["country"]] = item["count"]
+        return Response(result)
 
     def check_season_active(self, season):
         if season.is_closed:
