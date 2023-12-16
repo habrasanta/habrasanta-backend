@@ -831,6 +831,25 @@ class SeasonViewSetTestCase(TestCase):
         obj = json.loads(response.content)
         self.assertEqual(obj["id"], 2007)
 
+    def test_countries(self):
+        client = APIClient()
+        response = client.get("/api/v1/seasons/2007/countries")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        Season.objects.create(
+            id=2007,
+            registration_open=timezone.now() - timedelta(hours=3),
+            registration_close=timezone.now() - timedelta(hours=2),
+            season_close=timezone.now() - timedelta(hours=1),
+        )
+        response = client.get("/api/v1/seasons/2007/countries")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"{}")
+        # TODO: add more tests...
+
 
 class UserViewSetTestCase(TestCase):
     def test_list(self):
