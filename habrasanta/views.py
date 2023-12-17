@@ -611,6 +611,7 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CountryViewSet(viewsets.ViewSet):
+    @method_decorator(cache_control(public=True, max_age=60 * 60 * 24 * 30))
     def list(self, request):
         """
         Lists all accepted countries.
