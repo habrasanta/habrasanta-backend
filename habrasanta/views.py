@@ -667,6 +667,12 @@ class LoginView(View):
 class CallbackView(View):
     def get(self, request):
         # TODO: check state
+        next = request.GET.get("next")
+        if not url_has_allowed_host_and_scheme(next, None):
+            next = "/"
+        if request.user.is_authenticated:
+            # A lot of our users try to press the Back button immediately after login.
+            return HttpResponseRedirect(next)
         code = request.GET.get("code")
         if not code:
             return render(request, "habrasanta/auth_error.html", status=500)
@@ -674,9 +680,6 @@ class CallbackView(View):
         if not user:
             return render(request, "habrasanta/auth_error.html", status=500)
         login(request, user)
-        next = request.GET.get("next")
-        if not url_has_allowed_host_and_scheme(next, None):
-            next = "/"
         return HttpResponseRedirect(next)
 
 
