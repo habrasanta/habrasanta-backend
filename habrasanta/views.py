@@ -711,7 +711,7 @@ class FakeAuthorizeView(View):
 class UnsubscribeView(View):
     def get(self, request):
         try:
-            user = User.objects.get(pk=request.GET.get("uid"))
+            user = User.objects.get(habr_id=request.GET.get("uid"))
         except User.DoesNotExist:
             return render(request, "habrasanta/unsubscribed.html", {
                 "error": "пользователь с таким ID не найден",
