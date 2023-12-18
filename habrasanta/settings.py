@@ -115,6 +115,11 @@ LOGGING = {
     }
 }
 
+# Send debugging information to kafeman when the site crashes.
+ADMINS = [
+    ("kafeman", "kafemanw@gmail.com"),
+]
+
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
 USE_I18N = True
