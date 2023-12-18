@@ -1,10 +1,8 @@
-import requests
-
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 
 from habrasanta.models import User
-from habrasanta.utils import fetch_habr_profile
+from habrasanta.utils import fetch_habr_profile, session
 
 
 class PublicHabrBackend(ModelBackend):
@@ -14,7 +12,7 @@ class PublicHabrBackend(ModelBackend):
     This backend authenticates users using the Habr's semi-public API.
     """
     def authenticate(self, request, authorization_code=None):
-        response = requests.post(settings.HABR_TOKEN_URL, data={
+        response = session.post(settings.HABR_TOKEN_URL, data={
             "grant_type": "authorization_code",
             "code": authorization_code,
             "client_id": settings.HABR_CLIENT_ID,
@@ -50,7 +48,7 @@ class PublicHabrBackend(ModelBackend):
     def fetch_profile(self, access_token):
         if not access_token:
             return None
-        response = requests.get(settings.HABR_USER_INFO_URL, headers={
+        response = session.get(settings.HABR_USER_INFO_URL, headers={
             "client": settings.HABR_CLIENT_ID,
             "token": access_token,
         })
