@@ -19,7 +19,7 @@ from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views import View
 from django.views.decorators.cache import cache_control, never_cache
-from rest_framework import permissions, mixins, viewsets
+from rest_framework import permissions, mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied, NotFound
 from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser
@@ -44,6 +44,13 @@ from habrasanta.serializers import (
 )
 from habrasanta.utils import fetch_habr_profile
 from habrasanta.models import Event, Message, Participation, Season, User
+
+
+class GenericAPIError(APIException):
+    """
+    Override APIException to avoid status code 5xx.
+    """
+    status_code = status.HTTP_418_IM_A_TEAPOT
 
 
 class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
@@ -113,11 +120,11 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         season = self.get_object()
         self.check_season_active(season)
         if not season.is_registration_open:
-            raise APIException("Регистрация на этот сезон уже невозможна", "the_die_is_cast")
+            raise GenericAPIError("Регистрация на этот сезон уже невозможна", "the_die_is_cast")
         if not request.user.can_participate:
             raise PermissionDenied("Вы не можете участвовать в нашем клубе", "unqualified")
         if Participation.objects.filter(user=self.request.user, season=season).exists():
-            raise APIException("Вы уже зарегистрированы на этот сезон", "dual_participation")
+            raise GenericAPIError("Вы уже зарегистрированы на этот сезон", "dual_participation")
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(season=season, user=request.user)
@@ -147,7 +154,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         self.check_season_active(season)
         participation = self.get_participation(season)
         if not season.is_registration_open:
-            raise APIException("Нельзя отказаться после окончания регистрации", "the_die_is_cast")
+            raise GenericAPIError("Нельзя отказаться после окончания регистрации", "the_die_is_cast")
         participation.delete()
         season.member_count -= 1
         season.save()
@@ -184,7 +191,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         if not participation.giftee:
             raise NotFound("Вам еще не назначен получателя подарка")
         if participation.gift_shipped_at:
-            raise APIException("Вами уже был отправлен один подарок", "already_shipped")
+            raise GenericAPIError("Вами уже был отправлен один подарок", "already_shipped")
         season.shipped_count += 1
         season.save()
         participation.gift_shipped_at = timezone.now()
@@ -238,9 +245,9 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         if not hasattr(participation, "santa"):
             raise NotFound("Вам еще не назначен Дед Мороз")
         if participation.gift_delivered_at:
-            raise APIException("Вами уже был получен один подарок", "already_delivered")
+            raise GenericAPIError("Вами уже был получен один подарок", "already_delivered")
         if not participation.santa.gift_shipped_at:
-            raise APIException("Нельзя получить подарок до того, как он был отправлен", "not_shipped")
+            raise GenericAPIError("Нельзя получить подарок до того, как он был отправлен", "not_shipped")
         season.delivered_count += 1
         season.save()
         participation.gift_delivered_at = timezone.now()
@@ -409,13 +416,13 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 
     def check_season_active(self, season):
         if season.is_closed:
-            raise APIException("Этот сезон находится в архиве", "season_archived")
+            raise GenericAPIError("Этот сезон находится в архиве", "season_archived")
 
     def get_participation(self, season):
         try:
             return Participation.objects.get(user=self.request.user, season=season)
         except Participation.DoesNotExist:
-            raise APIException("Ой, а вы во всем этом и не участвуете", "not_participating")
+            raise GenericAPIError("Ой, а вы во всем этом и не участвуете", "not_participating")
 
 
 class MessageViewSet(viewsets.GenericViewSet):
@@ -539,9 +546,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         """
         user = self.get_object()
         if user.is_banned:
-            raise APIException("Пользователь '{}' уже в бане".format(user.login))
+            raise GenericAPIError("Пользователь '{}' уже в бане".format(user.login))
         if user == request.user:
-            raise APIException("Не стоит банить самого себя (потеряете доступ в админку!)")
+            raise GenericAPIError("Не стоит банить самого себя (потеряете доступ в админку!)")
         user.is_banned = True
         user.save()
         serializer = self.get_serializer(data=request.data)
@@ -578,7 +585,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         """
         user = self.get_object()
         if not user.is_banned:
-            raise APIException("Пользователь '{}' уже разбанен".format(user.login))
+            raise GenericAPIError("Пользователь '{}' уже разбанен".format(user.login))
         user.is_banned = False
         user.save()
         serializer = self.get_serializer(data=request.data)
