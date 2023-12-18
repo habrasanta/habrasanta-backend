@@ -221,7 +221,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.get("/api/v1/seasons/2007/giftee_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -288,7 +288,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/giftee_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -297,7 +297,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/giftee_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -356,7 +356,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.get("/api/v1/seasons/2007/santa_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -422,7 +422,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/santa_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -431,7 +431,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/santa_chat")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -489,7 +489,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/mark_delivered")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -498,7 +498,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/mark_delivered")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -520,7 +520,7 @@ class SeasonViewSetTestCase(TestCase):
             giftee=participation,
         )
         response = client.post("/api/v1/seasons/2007/mark_delivered")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Нельзя получить подарок до того, как он был отправлен"
@@ -534,7 +534,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["season"]["delivered_count"], 1)
         self.assertIsNotNone(obj["participation"]["gift_delivered_at"])
         response = client.post("/api/v1/seasons/2007/mark_delivered")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Вами уже был получен один подарок"
@@ -563,7 +563,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/mark_shipped")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -572,7 +572,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/mark_shipped")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -601,7 +601,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["season"]["shipped_count"], 1)
         self.assertIsNotNone(obj["participation"]["gift_shipped_at"])
         response = client.post("/api/v1/seasons/2007/mark_shipped")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Вами уже был отправлен один подарок"
@@ -630,7 +630,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.get("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -678,7 +678,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.post("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -687,7 +687,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=2),
         )
         response = client.post("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Регистрация на этот сезон уже невозможна"
@@ -742,7 +742,7 @@ class SeasonViewSetTestCase(TestCase):
             "address": "Kafeman St. 42\nKafecity",
             "country": "AL",
         })
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Вы уже зарегистрированы на этот сезон"
@@ -771,7 +771,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() - timedelta(hours=1),
         )
         response = client.delete("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Этот сезон находится в архиве"
@@ -780,7 +780,7 @@ class SeasonViewSetTestCase(TestCase):
             season_close=timezone.now() + timedelta(hours=2),
         )
         response = client.delete("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
@@ -790,7 +790,7 @@ class SeasonViewSetTestCase(TestCase):
             user=user,
         )
         response = client.delete("/api/v1/seasons/2007/participation")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Нельзя отказаться после окончания регистрации"
@@ -915,7 +915,7 @@ class UserViewSetTestCase(TestCase):
             "Страница не найдена."
         )
         response = client.post("/api/v1/users/kafeman/ban")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Не стоит банить самого себя (потеряете доступ в админку!)"
@@ -933,7 +933,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(obj["reason"], "just for fun")
         self.assertTrue(obj["is_banned"])
         response = client.post("/api/v1/users/negasus/ban")
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Пользователь 'negasus' уже в бане"
@@ -967,7 +967,7 @@ class UserViewSetTestCase(TestCase):
         response = client.post("/api/v1/users/negasus/unban", {
             "reason": "sorry, that was enough fun",
         })
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
             "Пользователь 'negasus' уже разбанен"
