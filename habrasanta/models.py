@@ -87,7 +87,12 @@ class User(models.Model):
             return False
         # Only kafeman and the user itself can access personal information.
         if perm == "habrasanta.view_participation_address":
-            return self.login == "kafeman" or obj.user == self
+            if self.login == "kafeman":
+                return True
+            if isinstance(obj, User):
+                # FIXME: how is it possible?
+                return obj == self
+            return obj.user == self
         # Only kafeman and the user itself can access email addresses.
         if perm == "habrasanta.view_user_email":
             return self.login == "kafeman" or obj == self
