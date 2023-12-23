@@ -119,6 +119,7 @@ LOGGING = {
 ADMINS = [
     ("kafeman", "kafemanw@gmail.com"),
 ]
+SERVER_EMAIL = "django@mailgun.habrasanta.org"
 
 LANGUAGE_CODE = "ru-ru"
 TIME_ZONE = "UTC"
