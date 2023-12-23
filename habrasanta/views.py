@@ -733,7 +733,7 @@ class UnsubscribeView(View):
             })
         Event.objects.create(
             typ=Event.UNSUBSCRIBED,
-            sub=request.user,
+            sub=user,
             ip_address=request.META["REMOTE_ADDR"],
         )
         user.email_allowed = False
