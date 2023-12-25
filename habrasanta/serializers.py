@@ -25,7 +25,7 @@ class SeasonSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "login", "is_staff", "is_active", "can_participate", "last_online"]
+        fields = ["id", "login", "is_staff", "is_active", "can_participate", "email_allowed", "last_online"]
         extra_kwargs = {
             "url": { "lookup_field": "login" },
         }
