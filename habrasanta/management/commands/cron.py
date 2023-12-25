@@ -99,7 +99,7 @@ class Command(BaseCommand):
                 ).delay)
                 transaction.on_commit(send_email.s(
                     result["recipient__user"],
-                    "у вас <b>{}</b> {}".format(result["cnt"], plural),
+                    "у вас {} {}".format(result["cnt"], plural),
                     "Приветствуем!\n\n" +
                     "Вам прислали {} {} ".format(result["cnt"], plural) +
                     "- не тяните с прочтением, наверняка там что-то важное!"
