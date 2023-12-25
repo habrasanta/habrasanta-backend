@@ -50,7 +50,7 @@ def send_email(self, user_id, subject, body):
         raise Reject("The email address of user '{}' is not known".format(user.login))
     if not user.email_allowed:
         raise Reject("User '{}' has prohibited sending them emails".format(user.login))
-    unsubscribe_url = "https://habrasanta.org/backend/unsubscribe?uid={uid}&token={token}".format(
+    unsubscribe_url = "https://habra-adm.ru/backend/unsubscribe?uid={uid}&token={token}".format(
         uid=user.habr_id,
         token=user.email_token,
     )
