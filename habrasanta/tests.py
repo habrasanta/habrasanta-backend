@@ -1061,6 +1061,51 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
+    def test_allow_emails(self):
+        client = APIClient()
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Учетные данные не были предоставлены."
+        )
+        user = User.objects.create(login="exploitable")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "У вас недостаточно прав для выполнения данного действия."
+        )
+        user = User.objects.create(login="kafeman")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        User.objects.create(login="negasus")
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Пользователь 'negasus' уже подписан на email-уведомления"
+        )
+        User.objects.filter(login="negasus").update(email_allowed=False)
+        # Trick the code by setting some fake data in the cache...
+        cache.set("profile:negasus", {
+            "karma": 135,
+            "has_badge": True,
+            "is_readonly": False,
+            "avatar_url": "//habrastorage.org/getpro/habr/avatars/74a/1b6/c64/74a1b6c647c673df32177e355647ac71.jpg",
+        }, 5)
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 200)
+        obj = json.loads(response.content)
+        self.assertEqual(obj["login"], "negasus")
+        self.assertTrue(obj["email_allowed"])
+
 
 class CountryViewSetTestCase(TestCase):
     def test_list(self):

@@ -256,6 +256,7 @@ class Event(models.Model):
     SHIPMENT_CANCELED = 12
     SEASON_CREATED = 13
     UNSUBSCRIBED = 14
+    SUBSCRIBED = 15
     TYPES = [
         (LOGGED_IN, "Вход в систему"),
         (LOGGED_OUT, "Выход из системы"),
@@ -271,6 +272,7 @@ class Event(models.Model):
         (SHIPMENT_CANCELED, "Отмена отправки"),
         (SEASON_CREATED, "Новый сезон"),
         (UNSUBSCRIBED, "Отписка от EMail"),
+        (SUBSCRIBED, "Подписка на EMail"),
     ]
 
     typ = models.IntegerField("событие", choices=TYPES)

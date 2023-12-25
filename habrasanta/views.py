@@ -610,6 +610,30 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         ).delay)
         return Response(serializer.data)
 
+    @action(detail=True, methods=["post"])
+    def allow_emails(self, request, login):
+        """
+        Allows sending emails to this user.
+
+        Sometimes users click the unsubscribe link incidentally and ask us to resubscribe them again,
+        this method does exactly that.
+
+        The user calling this method must be an admin.
+        """
+        user = self.get_object()
+        if user.email_allowed:
+            raise GenericAPIError("Пользователь '{}' уже подписан на email-уведомления".format(user.login))
+        user.email_allowed = True
+        user.save()
+        Event.objects.create(
+            typ=Event.SUBSCRIBED,
+            sub=request.user,
+            user=user,
+            ip_address=request.META["REMOTE_ADDR"],
+        )
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
+
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes=[IsAdminUser]
