@@ -171,6 +171,90 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(
         detail=True,
+        methods=["DELETE"],
+        permission_classes=[IsAdminUser],
+        url_path="participants/(?P<login>[^/.]+)",
+    )
+    def kick_participant(self, request, pk, login):
+        """
+        Cancels participation of the given user.
+
+        Use with caution! It's one of the most dangerous API methods :-)
+        Doing a backup before calling this method is highly recommended.
+
+        The user calling this method must be an admin.
+        """
+        season = self.get_object()
+        user = get_object_or_404(User, login__iexact=login)
+        participation = get_object_or_404(Participation, user=user, season=season)
+        if season.is_registration_open:
+            # Easy peasy :-)
+            participation.delete()
+        else:
+            # Reconnect participants.
+            santa = participation.santa
+            giftee = participation.giftee
+            assert santa
+            assert giftee
+            participation.delete()
+            participation = None
+            santa.giftee = giftee
+            santa.save()
+            # Avoid loops of less than 3 people.
+            assert giftee.giftee != santa
+            # Send notifications.
+            transaction.on_commit(send_notification.s(
+                santa.user.id,
+                "Замена получателя подарка! Посмотреть адрес нового получателя можно в " +
+                "<a href=\"https://habra-adm.ru/{}/profile/\">профиле</a>.".format(season.id)
+            ).delay)
+            transaction.on_commit(send_email.s(
+                santa.user.id,
+                "замена получателя подарка",
+                "Приветствуем!\n\n" +
+                "Так получилось, что ваш Анонимный Получатель Подарка был заменён. " +
+                "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
+            ).delay)
+            transaction.on_commit(send_notification.s(
+                giftee.user.id,
+                "Замена Анонимного Деда Мороза!"
+            ).delay)
+            transaction.on_commit(send_email.s(
+                giftee.user.id,
+                "замена Деда Мороза",
+                "Приветствуем!\n\n" +
+                "Так получилось, что ваш Анонимный Дед Мороз был заменен (на не менее анонимного). " +
+                "Для выяснения причин свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
+            ).delay)
+            # TODO: what about private messages in the chat?
+        # Send a notification to the user itself.
+        transaction.on_commit(send_notification.s(
+            user.id,
+            "Кто-то из организаторов отменил ваше участие в АДМ-{}.".format(season.id)
+        ).delay)
+        transaction.on_commit(send_email.s(
+            user.id,
+            "ваше участие отменено",
+            "Приветствуем!\n\n" +
+            "Ваше участие в АДМ-{} было отменено. ".format(season.id) +
+            "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
+        ).delay)
+        # Update counters.
+        season.member_count -= 1
+        season.save()
+        # Log the event.
+        Event.objects.create(
+            typ=Event.UNENROLLED,
+            sub=request.user,
+            user=user,
+            season=season,
+            ip_address=request.META["REMOTE_ADDR"],
+        )
+        # Send 204 No Content.
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
         methods=["post"],
         permission_classes=[IsAuthenticated],
     )
