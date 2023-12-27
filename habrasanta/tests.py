@@ -850,6 +850,66 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.content, b"{}")
         # TODO: add more tests...
 
+    def test_kick_participant(self):
+        client = APIClient()
+        response = client.delete("/api/v1/seasons/2007/participants/negasus")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Учетные данные не были предоставлены."
+        )
+        user = User.objects.create(login="exploitable")
+        client.force_authenticate(user=user)
+        response = client.delete("/api/v1/seasons/2007/participants/negasus")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "У вас недостаточно прав для выполнения данного действия."
+        )
+        user = User.objects.create(login="kafeman")
+        client.force_authenticate(user=user)
+        response = client.delete("/api/v1/seasons/2007/participants/negasus")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        season = Season.objects.create(
+            id=2007,
+            member_count=4,
+            registration_open=timezone.now() - timedelta(hours=10),
+            registration_close=timezone.now() - timedelta(hours=1),
+            season_close=timezone.now() + timedelta(hours=10),
+        )
+        negasus = User.objects.create(login="negasus")
+        response = client.delete("/api/v1/seasons/2007/participants/negasus")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        boomburum = User.objects.create(login="Boomburum")
+        inzeppelin = User.objects.create(login="inzeppelin")
+        deniskin = User.objects.create(login="deniskin")
+        negasus_p = Participation.objects.create(season=season, user=negasus)
+        boomburum_p = Participation.objects.create(season=season, user=boomburum, giftee=negasus_p)
+        inzeppelin_p = Participation.objects.create(season=season, user=inzeppelin, giftee=boomburum_p)
+        deniskin_p = Participation.objects.create(season=season, user=deniskin, giftee=inzeppelin_p)
+        negasus_p.giftee = deniskin_p
+        negasus_p.save()
+        self.assertEqual(
+            Participation.objects.get(user=boomburum).giftee,
+            Participation.objects.get(user=negasus)
+        )
+        response = client.delete("/api/v1/seasons/2007/participants/negasus")
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Season.objects.get(pk=2007).member_count, 3)
+        self.assertEqual(Participation.objects.count(), 3)
+        self.assertEqual(
+            Participation.objects.get(user=boomburum).giftee,
+            Participation.objects.get(user=deniskin)
+        )
+
 
 class UserViewSetTestCase(TestCase):
     def test_list(self):
