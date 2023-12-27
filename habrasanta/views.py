@@ -476,7 +476,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         async_result = send_notification.delay(user.id, serializer.validated_data["text"])
-        return Response(AsyncResultSerializer(async_result).data)
+        return Response(AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED)
 
     @action(
         detail=True,
@@ -497,7 +497,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             serializer.validated_data["subject"],
             serializer.validated_data["body"]
         )
-        return Response(AsyncResultSerializer(async_result).data)
+        return Response(AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED)
 
     @action(
         detail=True,
