@@ -849,3 +849,8 @@ class UnsubscribeView(View):
         return render(request, "habrasanta/unsubscribed.html", {
             "email": user.email,
         })
+
+
+class HealthView(View):
+    def get(self, request):
+        return HttpResponse("okay", content_type="text/plain")
