@@ -21,6 +21,7 @@ urlpatterns = [
     path("backend/logout", views.LogoutView.as_view(), name="logout"),
     path("backend/info", views.InfoView.as_view(), name="userinfo"),
     path("backend/unsubscribe", views.UnsubscribeView.as_view(), name="unsubscribe"),
+    path("backend/health", views.HealthView.as_view(), name="health"),
     path("django_admin/", admin.site.urls),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
     path("api/explorer", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
