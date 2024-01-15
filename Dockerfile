@@ -18,4 +18,4 @@ COPY habrasanta ./habrasanta
 RUN python -m compileall habrasanta && \
     python manage.py collectstatic --no-input
 
-CMD ["uwsgi", "--threads=2", "--uwsgi-socket=:9090", "--static-map=/static=/app/staticfiles", "--module=habrasanta.wsgi"]
+CMD ["uwsgi", "--threads=2", "--uwsgi-socket=:9090", "--static-map=/backend/static=/app/staticfiles", "--module=habrasanta.wsgi"]
