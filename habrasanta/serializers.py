@@ -39,7 +39,7 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ["id", "text", "send_date", "read_date", "is_author"]
 
     def get_is_author(self, message) -> bool:
-        return message.sender == self.context["me"]
+        return message.sender_id == self.context["me"].id
 
 
 class SantaSerializer(serializers.ModelSerializer):

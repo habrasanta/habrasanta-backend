@@ -504,7 +504,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_participation(self, season):
         try:
-            return Participation.objects.get(user=self.request.user, season=season)
+            return Participation.objects.select_related("santa", "giftee").get(user=self.request.user, season=season)
         except Participation.DoesNotExist:
             raise GenericAPIError("Ой, а вы во всем этом и не участвуете", "not_participating")
 
