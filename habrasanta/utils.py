@@ -4,6 +4,8 @@ import time
 
 from django.conf import settings
 from django.core.cache import cache
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 
 logger = logging.getLogger(__name__)
@@ -13,6 +15,13 @@ session = requests.Session()
 session.headers.update({
     "User-Agent": settings.HABR_USER_AGENT,
 })
+
+retries = Retry(
+    total=3,
+    backoff_factor=0.1,
+    allowed_methods=["GET"],
+)
+session.mount("https://habr.com/", HTTPAdapter(max_retries=retries))
 
 
 def fetch_habr_profile(username):
