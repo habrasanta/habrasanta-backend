@@ -763,9 +763,11 @@ class InfoView(APIView):
 class LoginView(View):
     def get(self, request):
         next = request.GET.get("next")
-        redirect_uri = reverse("callback")
-        if url_has_allowed_host_and_scheme(next, None):
-            redirect_uri += "?" + urlencode({ "next": next }) # TODO: move to state
+        if not url_has_allowed_host_and_scheme(next, None):
+            next = "/"
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(next)
+        redirect_uri = reverse("callback") + "?" + urlencode({ "next": next }) # TODO: move to state
         if settings.DEBUG:
             authorize_url = reverse("fake_authorize")
         else:
