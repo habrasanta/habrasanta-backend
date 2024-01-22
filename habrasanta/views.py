@@ -28,7 +28,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from urllib.parse import urlparse
 
-from habrasanta.celery import send_email, send_notification
+from habrasanta.celery import send_email, send_notification, give_badge
 from habrasanta.serializers import (
     AsyncResultSerializer,
     BanRecordSerializer,
@@ -353,6 +353,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             "Новогоднее чудо случилось — ваш Анонимный Получатель Подарка отметил, что получил подарок!\n\n" +
             "Поздравляем и желаем всего наилучшего в новом году!"
         ).delay)
+        # Use the task queue, because Habr is down sometimes and the badge is important for some users.
+        transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
         return Response({
             "season": self.get_serializer(season).data,
             "participation": ParticipationSerializer(participation).data,
