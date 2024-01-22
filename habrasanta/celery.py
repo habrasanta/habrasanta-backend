@@ -83,3 +83,25 @@ def send_email(self, user_id, subject, body):
         return email.send(fail_silently=False)
     except Exception as e:
         raise self.retry(countdown=60 * 5, exc=e)
+
+
+@app.task(bind=True)
+def give_badge(self, user_id):
+    from habrasanta.models import User
+    user = User.objects.get(pk=user_id)
+    try:
+        response = session.post("https://habr.com/api/v2/users/{}/add_adm_badge".format(user.login), headers={
+            "client": settings.HABR_CLIENT_ID,
+            "apikey": settings.HABR_APIKEY,
+        }, timeout=5)
+    except Exception as e:
+        # Happens on timeout, DNS errors, etc.
+        raise self.retry(countdown=60 * 5, exc=e)
+    if response.status_code == 409:
+        # Happens when the user already has the badge.
+        raise Reject("Looks like user '{}' already has the badge".format(user.login))
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        # Happens when connection was successful, but Habr is boom-boom.
+        raise self.retry(countdown=60 * 5, exc=e)
