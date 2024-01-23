@@ -88,6 +88,7 @@ def send_email(self, user_id, subject, body):
 @app.task(bind=True)
 def give_badge(self, user_id):
     from habrasanta.models import User
+    from habrasanta.utils import session
     user = User.objects.get(pk=user_id)
     try:
         response = session.post("https://habr.com/api/v2/users/{}/add_adm_badge".format(user.login), headers={
