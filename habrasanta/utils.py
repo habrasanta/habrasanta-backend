@@ -31,6 +31,16 @@ def fetch_habr_profile(username):
         response = session.get("https://habr.com/api/v2/users/{}/card".format(username), headers={
             "apikey": settings.HABR_APIKEY,
         }, timeout=(0.5, 1.0))
+        if response.status_code == 404:
+            # Boomburum is changing usernames again.
+            from habrasanta.models import User
+            from habrasanta.celery import send_notification
+            boomburum = User.objects.get(login="Boomburum")
+            send_notification.delay(
+                boomburum.id,
+                "Пользователя '{}' больше нет с нами.".format(user.login)
+            )
+            return None
         if response.status_code != 200:
             logger.warning("Request to {} failed: got status code {}".format(response.url, response.status_code))
             logger.warning(response.text)
