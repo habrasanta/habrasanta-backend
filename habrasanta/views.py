@@ -19,6 +19,7 @@ from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views import View
 from django.views.decorators.cache import cache_control, never_cache
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import permissions, mixins, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied, NotFound
@@ -827,22 +828,27 @@ class FakeAuthorizeView(View):
         }) + "&" + url.query)
 
 
-class UnsubscribeView(View):
-    def get(self, request):
-        try:
-            user = User.objects.get(habr_id=request.GET.get("uid"))
-        except User.DoesNotExist:
-            return render(request, "habrasanta/unsubscribed.html", {
-                "error": "пользователь с таким ID не найден",
-            })
-        if user.email_token != request.GET.get("token"):
-            return render(request, "habrasanta/unsubscribed.html", {
-                "error": "токен невалиден для этого пользователя",
-            })
-        if not user.email_allowed:
-            return render(request, "habrasanta/unsubscribed.html", {
-                "error": "у нас уже отмечено, что вы не хотите получать наши письма",
-            })
+@csrf_exempt # already validated by email_token
+def unsubscribe(request):
+    if not "uid" in request.GET:
+        return render(request, "habrasanta/unsubscribed.html", {
+            "error": "отсутствует ID пользователя",
+        })
+    try:
+        user = User.objects.get(habr_id=request.GET.get("uid"))
+    except User.DoesNotExist:
+        return render(request, "habrasanta/unsubscribed.html", {
+            "error": "пользователь с таким ID не найден",
+        })
+    if user.email_token != request.GET.get("token"):
+        return render(request, "habrasanta/unsubscribed.html", {
+            "error": "токен невалиден для этого пользователя",
+        })
+    if not user.email_allowed:
+        return render(request, "habrasanta/unsubscribed.html", {
+            "error": "у нас уже отмечено, что вы не хотите получать наши письма",
+        })
+    if request.method == "POST":
         Event.objects.create(
             typ=Event.UNSUBSCRIBED,
             sub=user,
@@ -853,6 +859,11 @@ class UnsubscribeView(View):
         return render(request, "habrasanta/unsubscribed.html", {
             "email": user.email,
         })
+    return render(request, "habrasanta/unsubscribe.html", {
+        "email": user.email,
+        "uid": user.habr_id,
+        "token": user.email_token,
+    })
 
 
 class HealthView(View):
