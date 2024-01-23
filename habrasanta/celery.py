@@ -101,6 +101,15 @@ def give_badge(self, user_id):
     if response.status_code == 409:
         # Happens when the user already has the badge.
         raise Reject("Looks like user '{}' already has the badge".format(user.login))
+    if response.status_code == 404:
+        # Boomburum is changing usernames again.
+        boomburum = User.objects.get(login="Boomburum")
+        send_email.delay(
+            boomburum.id,
+            "не могу выдать значок!",
+            "Пользователя '{}' больше нет с нами.".format(user.login)
+        )
+        return
     try:
         response.raise_for_status()
     except Exception as e:
