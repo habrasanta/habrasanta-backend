@@ -20,7 +20,7 @@ urlpatterns = [
     path("backend/login/callback", views.CallbackView.as_view(), name="callback"),
     path("backend/logout", views.LogoutView.as_view(), name="logout"),
     path("backend/info", views.InfoView.as_view(), name="userinfo"),
-    path("backend/unsubscribe", views.UnsubscribeView.as_view(), name="unsubscribe"),
+    path("backend/unsubscribe", views.unsubscribe, name="unsubscribe"),
     path("backend/health", views.HealthView.as_view(), name="health"),
     path("django_admin/", admin.site.urls),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
