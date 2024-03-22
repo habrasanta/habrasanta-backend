@@ -811,6 +811,13 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         participation.season.save()
         participation.gift_delivered_at = serializer.validated_data["gift_delivered_at"]
         participation.save()
+        Event.objects.create(
+            typ=Event.GIFT_RECEIVED,
+            sub=request.user,
+            season=participation.season,
+            obo=user,
+            ip_address=request.META["REMOTE_ADDR"],
+        )
         # Use the task queue, because Habr is down sometimes and the badge is important for some users.
         transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
         # Notifications for the user themselves:
