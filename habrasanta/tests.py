@@ -1166,6 +1166,139 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(obj["login"], "negasus")
         self.assertTrue(obj["email_allowed"])
 
+    def test_mark_shipped(self):
+        client = APIClient()
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Учетные данные не были предоставлены."
+        )
+        user = User.objects.create(login="exploitable")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "У вас недостаточно прав для выполнения данного действия."
+        )
+        user = User.objects.create(login="kafeman")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        user = User.objects.create(login="negasus")
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этот пользователь не участвует в этом сезоне"
+        )
+        season = Season.objects.create(
+            id=2007,
+            registration_open=timezone.now() - timedelta(hours=3),
+            registration_close=timezone.now() - timedelta(hours=2),
+            season_close=timezone.now() - timedelta(hours=1),
+        )
+        participation = Participation.objects.create(
+            season=season,
+            user=user,
+        )
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этому пользователю еще не назначен получателя подарка"
+        )
+        user = User.objects.create(login="Boomburum")
+        participation.giftee = Participation.objects.create(
+            season=season,
+            user=user,
+        )
+        participation.save()
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 200)
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этот пользователь уже отправил подарок"
+        )
+
+    def test_mark_delivered(self):
+        client = APIClient()
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Учетные данные не были предоставлены."
+        )
+        user = User.objects.create(login="exploitable")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/allow_emails")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "У вас недостаточно прав для выполнения данного действия."
+        )
+        user = User.objects.create(login="kafeman")
+        client.force_authenticate(user=user)
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Страница не найдена."
+        )
+        user = User.objects.create(login="negasus")
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этот пользователь не участвует в этом сезоне"
+        )
+        season = Season.objects.create(
+            id=2007,
+            registration_open=timezone.now() - timedelta(hours=3),
+            registration_close=timezone.now() - timedelta(hours=2),
+            season_close=timezone.now() - timedelta(hours=1),
+        )
+        participation = Participation.objects.create(
+            season=season,
+            user=user,
+        )
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этому пользователю еще не назначен Дед Мороз, красный нос"
+        )
+        user = User.objects.create(login="Boomburum")
+        participation.santa = Participation.objects.create(
+            season=season,
+            user=user,
+            giftee=participation,
+        )
+        participation.save()
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Нельзя получить подарок до того, как он был отправлен"
+        )
+        participation.santa.gift_shipped_at = timezone.now() - timedelta(hours=1)
+        participation.santa.save()
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 200)
+        response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
+        self.assertEqual(response.status_code, 418)
+        self.assertEqual(
+            json.loads(response.content)["detail"],
+            "Этим пользователем уже был получен подарок"
+        )
+
 
 class CountryViewSetTestCase(TestCase):
     def test_list(self):

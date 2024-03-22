@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
@@ -106,3 +107,11 @@ class BanRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = BanRecord
         fields = ["admin", "reason", "is_banned", "date"]
+
+
+class MarkShippedSerializer(serializers.Serializer):
+    gift_shipped_at = serializers.DateTimeField(default=timezone.now)
+
+
+class MarkDeliveredSerializer(serializers.Serializer):
+    gift_delivered_at = serializers.DateTimeField(default=timezone.now)
