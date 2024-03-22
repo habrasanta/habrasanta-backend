@@ -42,6 +42,8 @@ from habrasanta.serializers import (
     TestNotificationSerializer,
     UserInfoSerializer,
     UserSerializer,
+    MarkShippedSerializer,
+    MarkDeliveredSerializer,
 )
 from habrasanta.utils import fetch_habr_profile
 from habrasanta.models import Event, Message, Participation, Season, User
@@ -720,6 +722,124 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         )
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        serializer_class=MarkShippedSerializer,
+        url_path="seasons/(?P<season_id>\\d+)/mark_shipped",
+    )
+    def mark_shipped(self, request, login, season_id):
+        """
+        Marks the gift as shipped in the given season.
+
+        The user calling this method must be an admin.
+        """
+        user = self.get_object()
+        try:
+            participation = Participation.objects.get(user=user, season_id=season_id)
+        except Participation.DoesNotExist:
+            raise GenericAPIError("Этот пользователь не участвует в этом сезоне", "not_participating")
+        if not participation.giftee:
+            raise NotFound("Этому пользователю еще не назначен получателя подарка")
+        if participation.gift_shipped_at:
+            raise GenericAPIError("Этот пользователь уже отправил подарок", "already_shipped")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        participation.season.shipped_count += 1
+        participation.season.save()
+        participation.gift_shipped_at = serializer.validated_data["gift_shipped_at"]
+        participation.save()
+        Event.objects.create(
+            typ=Event.GIFT_SENT,
+            sub=request.user,
+            season=participation.season,
+            obo=user,
+            ip_address=request.META["REMOTE_ADDR"],
+        )
+        # Notifications for the user themselves:
+        transaction.on_commit(send_notification.s(
+            user.id,
+            "Лучше поздно, чем никогда - спасибо, что отправили подарок!"
+        ).delay)
+        transaction.on_commit(send_email.s(
+            user.id,
+            "запоздавшее новогоднее волшебство",
+            "Лучше поздно, чем никогда - спасибо, что отправили подарок!"
+        ).delay)
+        # Notifications for their giftee:
+        transaction.on_commit(send_notification.s(
+            participation.giftee.user.id,
+            "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!"
+        ).delay)
+        transaction.on_commit(send_email.s(
+            participation.giftee.user.id,
+            "запоздавшее новогоднее волшебство",
+            "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!"
+        ).delay)
+        return Response({
+            "season": SeasonSerializer(participation.season).data,
+            "participation": ParticipationSerializer(participation).data,
+        })
+
+    @action(
+        detail=True,
+        methods=["post"],
+        serializer_class=MarkDeliveredSerializer,
+        url_path="seasons/(?P<season_id>\\d+)/mark_delivered",
+    )
+    def mark_delivered(self, request, login, season_id):
+        """
+        Marks the gift as delivered in the given season.
+
+        The user calling this method must be an admin.
+        """
+        user = self.get_object()
+        try:
+            participation = Participation.objects.get(user=user, season_id=season_id)
+        except Participation.DoesNotExist:
+            raise GenericAPIError("Этот пользователь не участвует в этом сезоне", "not_participating")
+        if not hasattr(participation, "santa"):
+            raise NotFound("Этому пользователю еще не назначен Дед Мороз, красный нос")
+        if participation.gift_delivered_at:
+            raise GenericAPIError("Этим пользователем уже был получен подарок", "already_delivered")
+        if not participation.santa.gift_shipped_at:
+            raise GenericAPIError("Нельзя получить подарок до того, как он был отправлен", "not_shipped")
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        participation.season.delivered_count += 1
+        participation.season.save()
+        participation.gift_delivered_at = serializer.validated_data["gift_delivered_at"]
+        participation.save()
+        # Use the task queue, because Habr is down sometimes and the badge is important for some users.
+        transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
+        # Notifications for the user themselves:
+        transaction.on_commit(send_notification.s(
+            user.id,
+            "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас."
+        ).delay)
+        transaction.on_commit(send_email.s(
+            user.id,
+            "запоздавшее новогоднее волшебство",
+            "Приветствуем!\n\n" +
+            "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас."
+        ).delay)
+        # Notifications for their santa:
+        transaction.on_commit(send_notification.s(
+            participation.santa.user.id,
+            "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него. Спасибо за участие!"
+        ).delay)
+        transaction.on_commit(send_email.s(
+            participation.santa.user.id,
+            "запоздавшее новогоднее волшебство",
+            "Привет, Анонимный Дед Мороз!\n\n" +
+            "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него.\n\n" +
+            "Спасибо за участие!"
+        ).delay)
+        return Response({
+            "season": SeasonSerializer(participation.season).data,
+            "participation": ParticipationSerializer(participation).data,
+        })
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet):
