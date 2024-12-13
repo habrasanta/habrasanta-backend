@@ -29,7 +29,7 @@ class Command(BaseCommand):
                 self.stdout.write("No address matching needed")
                 return # Nothing to do.
             self.stdout.write("Gonna match {}...".format(season))
-            clusters = [["RU", "BY"], ["UA", "MD"], ["US", "JP"], ["KZ", "UZ"], []]
+            clusters = [["RU"], ["BY"], []]
             for cluster in clusters:
                 participants = Participation.objects.filter(season=season).order_by("?")
                 if len(cluster):
