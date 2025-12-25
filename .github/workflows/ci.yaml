@@ -36,15 +36,22 @@ jobs:
           NODE_ENV: production
       - name: Upload to the S3 bucket
         run: |
-          wget https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          ./mc alias set habra-adm https://hel1.your-objectstorage.com "$ACCESSKEY" "$SECRETKEY"
-          ./mc cp -r dist/ habra-adm/habra-adm
-          ./mc cors set habra-adm/habra-adm cors.xml
-          rm ~/.mc/config.json
+          sudo apt install -y s3cmd
+          s3cmd put \
+            --host=hel1.your-objectstorage.com \
+            --host-bucket=%(bucket)s.your-objectstorage.com \
+            --add-header=Cache-Control:public,max-age=315360000 \
+            --recursive \
+            dist/ \
+            s3://habra-adm
+          s3cmd setcors \
+            --host=hel1.your-objectstorage.com \
+            --host-bucket=%(bucket)s.your-objectstorage.com \
+            cors.xml \
+            s3://habra-adm
         env:
-          ACCESSKEY: ${{ secrets.S3_ACCESSKEY }}
-          SECRETKEY: ${{ secrets.S3_SECRETKEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESSKEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRETKEY }}
       - uses: actions/upload-artifact@v4
         with:
           name: assets-manifest.json
