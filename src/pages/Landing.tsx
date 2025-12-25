@@ -15,20 +15,7 @@ const Landing: FunctionComponent<{
   year: string;
 }> = props => {
   const user = useUser();
-  const [season, setSeason] = useState<Season | undefined>();
-
-  useEffect(() => {
-    fetch("/api/v1/seasons/" + props.year)
-      .then(res => res.ok ? res.json() : Promise.reject(res))
-      .then((data: Season) => setSeason(data))
-      .catch(res => {
-        if (res.status === 404) {
-          window.location.href = "/not-found";
-        } else {
-          res.json().then(err => alert(err.detail));
-        }
-      });
-  }, []);
+  const [season] = useState<Season>(JSON.parse(document.getElementById("season").textContent));
 
   if (user.is_authenticated) {
     route("/" + props.year + "/profile/", true);
