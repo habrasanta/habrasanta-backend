@@ -41,6 +41,7 @@ jobs:
             --host=hel1.your-objectstorage.com \
             --host-bucket=habra-adm.your-objectstorage.com \
             --guess-mime-type \
+            --no-mime-magic \
             --add-header=Cache-Control:public,max-age=315360000 \
             --recursive \
             dist/ \
