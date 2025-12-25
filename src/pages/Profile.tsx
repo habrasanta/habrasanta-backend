@@ -38,7 +38,7 @@ const Profile: FunctionComponent<{
   const [leftCardFlipped, setLeftCardFlipped] = useState(false);
   const [rightCardFlipped, setRightCardFlipped] = useState(false);
   const [addressFormError, setAddressFormError] = useState<AddressFormError>({ });
-  const [season, setSeason] = useState<Season | undefined>();
+  const [season, setSeason] = useState<Season>(JSON.parse(document.getElementById("season").textContent));
   const [participation, setParticipation] = useState<Participation | undefined>();
   const [santaChat, setSantaChat] = useState<Mail[]>([]);
   const [gifteeChat, setGifteeChat] = useState<Mail[]>([]);
@@ -51,16 +51,6 @@ const Profile: FunctionComponent<{
   }, []);
 
   useEffect(() => {
-    fetch("/api/v1/seasons/" + props.year)
-      .then(res => res.ok ? res.json() : Promise.reject(res))
-      .then(data => setSeason(data))
-      .catch(res => {
-        if (res.status === 404) {
-          window.location.href = "/not-found";
-        } else {
-          res.json().then(err => alert(err.detail));
-        }
-      });
     fetch("/api/v1/seasons/" + props.year + "/participation")
       .then(res => res.ok ? res.json() : Promise.reject(res))
       .then(data => setParticipation(data))
