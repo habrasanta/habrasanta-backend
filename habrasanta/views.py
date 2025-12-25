@@ -968,7 +968,10 @@ class IndexView(View):
 
 class FrontendView(View):
     def get(self, request, year):
-        return render(request, "habrasanta/frontend.html")
+        season = get_object_or_404(Season, id=year)
+        return render(request, "habrasanta/frontend.html", {
+            "season": SeasonSerializer(season).data,
+        })
 
 
 @csrf_exempt # already validated by email_token
