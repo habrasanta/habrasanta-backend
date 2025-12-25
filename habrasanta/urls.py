@@ -16,9 +16,9 @@ router.register("seasons", views.SeasonViewSet)
 router.register("users", views.UserViewSet)
 
 urlpatterns = [
-    path("", views.FrontendView.as_view()),
-    path("<int:year>/", views.FrontendView.as_view()),
-    path("<int:year>/profile/", views.FrontendView.as_view()),
+    path("", views.IndexView.as_view()),
+    path("<int:year>/", views.FrontendView.as_view(), name="welcome"),
+    path("<int:year>/profile/", views.FrontendView.as_view(), name="profile"),
     path("api/v1/", include(router.urls)),
     path("backend/login", views.LoginView.as_view(), name="login"),
     path("backend/login/callback", views.CallbackView.as_view(), name="callback"),
