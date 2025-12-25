@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /backend/info
+Disallow: /backend/
+Allow: /

@@ -1,0 +1,10 @@
+<CORSConfiguration>
+  <CORSRule>
+    <AllowedOrigin>https://beta.habrasanta.org</AllowedOrigin>
+    <AllowedMethod>GET</AllowedMethod>
+  </CORSRule>
+  <CORSRule>
+    <AllowedOrigin>https://habra-adm.ru</AllowedOrigin>
+    <AllowedMethod>GET</AllowedMethod>
+  </CORSRule>
+</CORSConfiguration>

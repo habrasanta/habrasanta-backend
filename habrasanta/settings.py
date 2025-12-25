@@ -1,3 +1,4 @@
+import json
 import os
 
 from pathlib import Path
@@ -159,3 +160,6 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 
 HABRASANTA_ADMINS = os.getenv("HABRASANTA_ADMINS", "kafeman,negasus").split(",")
 HABRASANTA_KARMA_LIMIT = 5.0
+
+with open(BASE_DIR / "assets-manifest.json", "r") as f:
+    WEBPACK = json.load(f)

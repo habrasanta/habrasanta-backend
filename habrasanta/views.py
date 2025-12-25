@@ -955,6 +955,11 @@ class FakeAuthorizeView(View):
         }) + "&" + url.query)
 
 
+class FrontendView(View):
+    def get(self, request, year=None):
+        return render(request, "habrasanta/frontend.html")
+
+
 @csrf_exempt # already validated by email_token
 def unsubscribe(request):
     if not "uid" in request.GET:

@@ -1,0 +1,42 @@
+.footer {
+  padding: 0 var(--grid-unit-m) var(--grid-unit-l);
+  margin: var(--grid-unit-m) auto 0;
+  padding-bottom: var(--grid-unit-m);
+  max-width: 940px;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  gap: var(--grid-unit-m);
+}
+
+@media only screen and (max-width: 720px) {
+  .footer {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+}
+
+.footer-designer {
+  background: url(../images/novosylov.png) no-repeat 0px 10px;
+  color: var(--color-mist-gray);
+  float: right;
+  padding-left: 29px;
+  text-decoration: none;
+  transition: opacity 0.3s ease-out;
+}
+
+.footer-designer:hover {
+  color: #fff;
+}
+
+.footer-feedback {
+  color: var(--color-mist-gray);
+}
+
+.footer-feedback a {
+  color: var(--color-mist-gray);
+}
+
+.footer-feedback a:hover {
+  color: #fff;
+}

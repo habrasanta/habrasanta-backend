@@ -1,0 +1,143 @@
+body {
+  background: #382751;
+}
+
+a {
+  transition: color 0.3s ease-out;
+}
+
+.members {
+  background: var(--color-burgundy-red);
+  color: #fff;
+  padding: 5px;
+  text-align: center;
+  width: 130px;
+}
+
+.feature:before {
+  background-image: url(../images/features.png);
+  content: '';
+  display: block;
+}
+
+@media only screen and (max-width: 720px) {
+  .feature:before {
+    display: none;
+  }
+}
+
+.feature-description:before {
+  height: 100px;
+  margin-top: 16px;
+  min-width: 88px;
+  width: 88px;
+  margin: 0 7px;
+}
+
+.feature-anonymity:before {
+  background-position: -88px 0px;
+  height: 118px;
+  margin-top: 6px;
+  min-width: 105px;
+  width: 105px;
+}
+
+.feature-gift:before {
+  background-position: -193px 0px;
+  height: 101px;
+  margin-top: -5px;
+  min-width: 77px;
+  width: 77px;
+  margin: 0 14px;
+}
+
+.promo {
+  margin: var(--grid-unit-xl) auto var(--grid-unit-xxl);
+  max-width: 620px;
+  padding: 0 var(--grid-unit-m);
+}
+
+.promo-welcome {
+  color: #fff;
+  font-size: var(--font-size-xl);
+  text-align: center;
+}
+
+.promo-list {
+  margin-bottom: var(--grid-unit-xxl);
+  margin-top: var(--grid-unit-xl);
+  padding: 0 var(--grid-unit-s);
+}
+
+.promo-feature {
+  color: #fff;
+  margin-bottom: 50px;
+  display: flex;
+  gap: var(--grid-unit-l);
+}
+
+.promo-feature h5 {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.promo-button {
+  box-shadow: 0 0 0 10px #48306a, 0 -2px 0 rgba(0, 0, 0, 0.2) inset;
+  display: block;
+  font-size: var(--font-size-m);
+  margin: 10px auto;
+  max-width: 280px;
+}
+
+.banner {
+  padding: var(--grid-unit-l) var(--grid-unit-m) 0;
+  margin: 0 auto;
+  max-width: 940px;
+  position: relative;
+}
+
+
+@media only screen and (max-width: 720px) {
+  .banner {
+    padding: var(--grid-unit-xl) var(--grid-unit-m) 0;
+  }
+}
+
+.banner-inner {
+  border-bottom: 1px solid #4c3b65;
+  padding-bottom: var(--grid-unit-xl);
+}
+
+.banner-members {
+  position: absolute;
+  top: 0;
+  right: var(--grid-unit-m);
+  border-radius: 0 0 var(--radius-m) var(--radius-m);
+}
+
+.banner-logo {
+  background: transparent url(../images/circle.png);
+  height: 175px;
+  margin: 0 auto 30px;
+  padding: 42px 27px;
+  width: 205px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-welcome {
+  color: #fff;
+  font-size: var(--font-size-xl);
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto var(--grid-unit-l);
+  line-height: 1.2;
+}
+
+.banner-button {
+  display: block !important;
+  font-size: var(--font-size-m);
+  margin: 0 auto;
+  max-width: 280px;
+}

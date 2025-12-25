@@ -1,0 +1,16 @@
+.content {
+  padding: 0 var(--grid-unit-m);
+  margin: 70px auto;
+  max-width: 940px;
+  display: flex;
+  gap: var(--grid-unit-m);
+  justify-content: center;
+}
+
+@media only screen and (max-width: 720px) {
+  .content {
+    flex-direction: column;
+    align-items: center;
+    margin: 20px auto;
+  }
+}
