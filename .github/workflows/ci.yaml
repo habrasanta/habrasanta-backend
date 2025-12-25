@@ -43,6 +43,8 @@ jobs:
             --guess-mime-type \
             --no-mime-magic \
             --no-preserve \
+            --exclude=*.html \
+            --exclude=*.txt \
             --add-header=Cache-Control:public,max-age=315360000 \
             --recursive \
             dist/ \
