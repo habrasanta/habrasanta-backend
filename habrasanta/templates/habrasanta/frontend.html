@@ -19,6 +19,7 @@
         Один мальчик отключил JavaScript и не получил подарок.
       </div>
     </noscript>
+    {{ season|json_script:"season" }}
     <script src="{% webpack_asset 'main.js' 'src' %}" integrity="{% webpack_asset 'main.js' 'integrity' %}" crossorigin="anonymous"></script>
   </body>
 </html>
