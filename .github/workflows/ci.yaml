@@ -40,6 +40,7 @@ jobs:
           s3cmd put \
             --host=hel1.your-objectstorage.com \
             --host-bucket=habra-adm.your-objectstorage.com \
+            --guess-mime-type \
             --add-header=Cache-Control:public,max-age=315360000 \
             --recursive \
             dist/ \
