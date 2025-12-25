@@ -955,8 +955,19 @@ class FakeAuthorizeView(View):
         }) + "&" + url.query)
 
 
+class IndexView(View):
+    def get(self, request):
+        try:
+            season = Season.objects.latest()
+        except Season.DoesNotExist:
+            raise Http404("No seasons")
+        if request.user.is_authenticated:
+            return redirect("profile", year=season.id)
+        return redirect("welcome", year=season.id)
+
+
 class FrontendView(View):
-    def get(self, request, year=None):
+    def get(self, request, year):
         return render(request, "habrasanta/frontend.html")
 
 
