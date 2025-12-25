@@ -16,7 +16,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
-        run: python manage.py test
+        run: |
+          touch assets-manifest.json
+          python manage.py test
         env:
           REDIS_URL: redis://redis
 
