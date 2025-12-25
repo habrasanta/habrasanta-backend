@@ -1,0 +1,25 @@
+.loading {
+  min-height: 200px;
+  padding-top: var(--grid-unit-xxl);
+}
+
+.ripple {
+  text-decoration: none;
+  color: #fff;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-bossanova-purple-light);
+  margin: 0 auto;
+  border-radius: 100%;
+  animation: ripple .7s linear infinite;
+}
+
+@keyframes ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(85, 60, 122, 0.3), 0 0 0 10px rgba(85, 60, 122, 0.3), 0 0 0 30px rgba(85, 60, 122, 0.3), 0 0 0 60px rgba(85, 60, 122, 0.3);
+  }
+
+  100% {
+    box-shadow: 0 0 0 10px rgba(85, 60, 122, 0.3), 0 0 0 30px rgba(85, 60, 122, 0.3), 0 0 0 60px rgba(85, 60, 122, 0.3), 0 0 0 90px rgba(85, 60, 122, 0);
+  }
+}

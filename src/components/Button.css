@@ -1,0 +1,46 @@
+.button {
+  border-radius: var(--radius-m);
+  border: none;
+  box-shadow: 0px -2px 0px rgba(0, 0, 0, 0.2) inset;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  padding: var(--grid-unit-m);
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+button:disabled {
+  filter: saturate(0);
+  cursor: not-allowed;
+}
+
+.button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+
+.button:focus {
+  outline: 0;
+}
+
+.button-primary {
+  background: var(--color-sheakspeare-blue);
+}
+
+.button-primary:hover {
+  background: var(--color-sheakspeare-blue);
+  filter: saturate(1.5);
+}
+
+.button-primary:active {
+  background: var(--color-sheakspeare-blue);
+  filter: saturate(0.8) contrast(1.5);
+  box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.2) inset;
+}
+
+
+button:disabled:hover {
+  filter: saturate(0);
+}

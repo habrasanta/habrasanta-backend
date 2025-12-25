@@ -1,0 +1,17 @@
+.timetable {
+  background: var(--color-bossanova-purple-light);
+  min-height: 65px;
+  display: flex;
+  width: 100%;
+  border-radius: var(--radius-m);
+}
+
+.timetable li {
+  float: left;
+  padding: var(--grid-unit-m);
+}
+
+.timetable b {
+  display: block;
+  font-weight: bold;
+}

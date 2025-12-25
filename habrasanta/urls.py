@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.urls import include, path
+from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
 
@@ -15,6 +16,9 @@ router.register("seasons", views.SeasonViewSet)
 router.register("users", views.UserViewSet)
 
 urlpatterns = [
+    path("", views.FrontendView.as_view()),
+    path("<int:year>", views.FrontendView.as_view()),
+    path("<int:year>/profile", views.FrontendView.as_view()),
     path("api/v1/", include(router.urls)),
     path("backend/login", views.LoginView.as_view(), name="login"),
     path("backend/login/callback", views.CallbackView.as_view(), name="callback"),
@@ -25,6 +29,9 @@ urlpatterns = [
     path("django_admin/", admin.site.urls),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
     path("api/explorer", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("terms", TemplateView.as_view(template_name="habrasanta/terms.html")),
+    path("privacy", TemplateView.as_view(template_name="habrasanta/privacy.html")),
+    path("robots.txt", TemplateView.as_view(template_name="habrasanta/robots.txt", content_type="text/plain")),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,28 @@
+.logo {
+  background: url(../images/logo.png);
+  background-size: cover;
+  font-weight: bold;
+  height: 54px;
+  padding-top: 118px;
+  text-align: center;
+  width: 240px;
+  min-width: 240px;
+  position: relative;
+}
+
+.logo h1 {
+  color: var(--color-milano-red);
+  font-size: var(--font-size-l);
+  line-height: 1;
+}
+
+.logo h2 {
+  color: var(--color-sheakspeare-blue);
+  font-size: var(--font-size-s);
+}
+
+.logo .bug {
+  position: absolute;
+  left: 23px;
+  top: 41px;
+}

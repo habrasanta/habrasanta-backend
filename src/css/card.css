@@ -1,0 +1,373 @@
+.card {
+  -webkit-perspective: 800px;
+  perspective: 800px;
+  max-width: 380px;
+  width: 100%;
+}
+
+.card-heading,
+.card-front,
+.card-back {
+  background: #fff;
+  color: #000;
+}
+
+.card-heading {
+  background-clip: padding-box;
+  border-radius: var(--radius-m) var(--radius-m) 0px 0px;
+  font-size: var(--font-size-l);
+  line-height: 60px;
+  text-align: center;
+}
+
+.card .chat-counter {
+  float: right;
+  background: var(--color-milano-red);
+  color: #fff;
+  height: 16px;
+  width: 16px;
+  padding: 0;
+  font-size: 10px;
+  line-height: 15px;
+  border-radius: 100%;
+  margin-top: -17px;
+  position: absolute;
+}
+
+.card-body {
+  min-height: 380px;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  -webkit-transition: -webkit-transform 1s;
+  transition: transform 1s;
+  max-width: 380px;
+}
+
+.card-front,
+.card-back {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 0 0 var(--radius-m) var(--radius-m);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) inset;
+  min-height: 380px;
+  max-height: 380px;
+  padding: var(--grid-unit-m) var(--grid-unit-l);
+  position: absolute;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card-front {
+  z-index: 0;
+}
+
+.card-back {
+  -ms-transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+.card-flipped .card-body {
+  -ms-transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+/* .card-santa {
+  margin-left: 80px;
+}
+
+.card-giftee {
+  margin-left: 480px;
+} */
+
+.card-title {
+  margin: 0px 42px;
+  display: flex;
+  gap: var(--grid-unit-s);
+  align-items: center;
+  justify-content: center;
+}
+
+.card-avatar {
+  border-radius: var(--radius-s);
+  height: 30px;
+  margin-right: 6px;
+  margin-top: -3px;
+  vertical-align: middle;
+  width: 30px;
+}
+
+.card-banned a {
+  color: var(--color-sheakspeare-blue);
+  text-decoration: none;
+}
+
+.card-banned a:hover {
+  text-decoration: underline;
+}
+
+.card-banned p {
+  font-size: var(--font-size-m);
+  margin-bottom: var(--grid-unit-m)
+}
+
+.card-stamp {
+  background: url(../images/stamp.png);
+  color: var(--color-sheakspeare-blue);
+  float: right;
+  font-size: 8px;
+  height: 15px;
+  margin-top: 7px;
+  padding-left: 126px;
+  padding-top: 41px;
+  width: 25px;
+  position: absolute;
+  right: var(--grid-unit-l);
+}
+
+.card-decorated {
+  background: #fff url(../images/decorated.png);
+}
+
+.card-button {
+  background: var(--color-affair-violet);
+  font-size: var(--font-size-m);
+  width: 100%;
+}
+
+.card-button:hover {
+  background: var(--color-affair-violet);
+  filter: saturate(1.5);
+}
+
+.card-button:active {
+  background: var(--color-affair-violet);
+  filter: saturate(0.8) contrast(1.5);
+}
+
+
+.card-nothing-sent {
+  background: var(--color-sheakspeare-blue);
+  color: #fff;
+  font-size: var(--font-size-l);
+  font-weight: bold;
+  text-align: center;
+}
+
+.card-nothing-sent img {
+  display: block;
+  height: 138px;
+  margin: 65px auto 40px auto;
+  width: 138px;
+}
+
+.card input[type=checkbox] {
+  border: 0;
+  clip: rect(0 0 0 0); 
+  height: 1px; 
+  margin: -1px; 
+  overflow: hidden; 
+  padding: 0;
+  position: absolute; 
+  width: 1px; 
+}
+
+.card input[type=checkbox] + label {
+  background-image: url(../images/checkbox.png);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  display: inline-block;
+  font-size:var(--font-size-m);
+  height: 17px;
+  line-height: 17px;
+  padding-left: 30px;
+  vertical-align: middle;
+}
+
+.card input[type=checkbox]:checked + label {
+  background-position: 0 -17px;
+}
+
+.card-happy {
+  background: url(../images/happy-new-year.png) !important;
+  background-color: var(--color-christi-green)!important;
+  background-size: 380px!important;
+  color: #fff !important;
+  text-align: center;
+}
+
+.card-happy h3 {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+}
+
+.card-happy a {
+  color: #fff;
+}
+
+.card-closed {
+  color: var(--color-mist-gray);
+  padding: 0 0;
+  text-align: center;
+}
+
+.card-flipper {
+  background: #bfbec0 url(../images/chat.png);
+  border: none;
+  cursor: pointer;
+  float: right;
+  height: 17px;
+  margin-right: 25px;
+  margin-top: 23px;
+  width: 17px;
+}
+
+.card-flipper::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+
+.card-flipper:focus {
+  outline: 0;
+}
+
+.card-gift-sent {
+  background: var(--color-milano-red) !important;
+  color: #fff !important;
+  font-size: var(--font-size-m);
+  text-align: center;
+}
+
+.card-gift-sent img {
+  width: 146px;
+  height: 125px;
+  margin: 20px 0;
+}
+
+.card-gift-sent h3 {
+  font-weight: bold;
+  font-size: var(--font-size-xl);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.card-gift-received {
+  background: url(../images/gift_received.png) !important;
+  background-color: var(--color-milano-red)!important;
+  background-size: 380px!important;
+  color: #fff !important;
+  text-align: center;
+}
+
+.card-gift-received h3 {
+  font-weight: bold;
+  font-size: var(--font-size-xl);
+  line-height: 1.2;
+}
+
+.card-waiting {
+  font-size: var(--font-size-m);
+  text-align: center;
+}
+
+.card-waiting h3 {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  margin: var(--grid-unit-m) 0;
+  line-height: 1.2;
+}
+
+.card-waiting a {
+  color: #fff;
+}
+
+.card-danger .card-heading,
+.card-danger .card-front/*,
+.card-danger .card-back*/ {
+  background: var(--color-milano-red);
+  color: #fff;
+}
+
+label,
+input[type='text'],
+input[type='number'],
+textarea {
+  font: 16px/1.4 'PT Sans', Arial, sans-serif;
+  box-sizing: border-box;
+  resize: none;
+}
+
+input[type='text']:focus,
+input[type='number']:focus,
+textarea:focus {
+  outline: 0;
+  border: 1px solid var(--color-sheakspeare-blue);
+}
+
+input[type='text'],
+input[type='number'],
+textarea {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: var(--radius-s);
+  padding: 7px;
+  margin: var(--grid-unit-s) 0;
+  width: 100%;
+}
+
+input[type='text'].error,
+input[type='number'].error,
+textarea.error, 
+select.error {
+  border-color: var(--color-milano-red);
+  color: var(--color-milano-red);
+}
+
+input[type='text']:disabled,
+input[type='number']:disabled,
+textarea:disabled {
+  opacity: .7;
+}
+
+label {
+  display: block;
+}
+
+.shipping-confirmation {
+  line-height: 41px;
+}
+
+.shipping-button {
+  background: var(--color-milano-red);
+  float: right;
+  font-size: var(--font-size-m);
+  line-height: 21px;
+  margin-right: 14px;
+  transition: none;
+}
+
+.shipping-button:after {
+  border-bottom: 19px solid transparent;
+  border-left: 1em solid var(--color-milano-red);
+  border-top: 21px solid transparent;
+  content: "";
+  margin-left: 8px;
+  margin-top: -9px;
+  position: absolute;
+}
+
+.shipping-button:hover {
+  background: var(--color-milano-red);
+  filter: saturate(1.3);
+}
+
+.shipping-button:active {
+  background: var(--color-milano-red);
+  filter: saturate(0.8) contrast(1.5);
+}
+
+.shipping-button:hover:after {
+  border-left: 1em solid var(--color-milano-red);
+}

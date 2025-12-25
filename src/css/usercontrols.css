@@ -1,0 +1,34 @@
+.usercontrols-item {
+}
+
+.usercontrols-item a {
+  background: url(../images/buttons.png);
+  background-size: 134px;
+  display: block;
+  height: 44px;
+  width: 44px;
+}
+
+.usercontrols-source a {
+  background-position: 0 44px;
+}
+
+.usercontrols-source a:hover {
+  background-position: 0 89px;
+}
+
+.usercontrols-help a {
+  background-position: 89px 44px;
+}
+
+.usercontrols-help a:hover {
+  background-position: 89px 0;
+}
+
+.usercontrols-logout a {
+  background-position: 44px 44px;
+}
+
+.usercontrols-logout a:hover {
+  background-position: 44px 0;
+}
