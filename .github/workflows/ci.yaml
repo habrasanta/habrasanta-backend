@@ -39,14 +39,14 @@ jobs:
           sudo apt-get install -y s3cmd
           s3cmd put \
             --host=hel1.your-objectstorage.com \
-            '--host-bucket=%(bucket)s.your-objectstorage.com' \
+            --host-bucket=habra-adm.your-objectstorage.com \
             --add-header=Cache-Control:public,max-age=315360000 \
             --recursive \
             dist/ \
             s3://habra-adm
           s3cmd setcors \
             --host=hel1.your-objectstorage.com \
-            '--host-bucket=%(bucket)s.your-objectstorage.com' \
+            --host-bucket=habra-adm.your-objectstorage.com \
             cors.xml \
             s3://habra-adm
         env:
