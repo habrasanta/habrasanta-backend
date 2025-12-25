@@ -15,6 +15,7 @@ RUN apk add --no-cache libpq libc-dev linux-headers postgresql-dev \
     && apk del libc-dev linux-headers postgresql-dev
 
 COPY habrasanta ./habrasanta
+COPY assets-manifest.json ./
 RUN python -m compileall habrasanta && \
     python manage.py collectstatic --no-input
 
