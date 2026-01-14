@@ -24,6 +24,11 @@ retries = Retry(
 session.mount("https://habr.com/", HTTPAdapter(max_retries=retries))
 
 
+class HabrIsDownException(Exception):
+    def __init__(self):
+        super().__init__("Habr is offline")
+
+
 def fetch_habr_profile(username):
     profile = cache.get("profile:" + username)
     if not profile:
@@ -41,6 +46,8 @@ def fetch_habr_profile(username):
                 "Пользователя '{}' больше нет с нами.".format(user.login)
             )
             return None
+        if response.status_code == 502:
+            raise HabrIsDownException()
         if response.status_code != 200:
             logger.warning("Request to {} failed: got status code {}".format(response.url, response.status_code))
             logger.warning(response.text)
@@ -49,6 +56,8 @@ def fetch_habr_profile(username):
         response = session.get("https://habr.com/api/v2/users/{}/whois".format(username), headers={
             "apikey": settings.HABR_APIKEY,
         }, timeout=(0.5, 1.0))
+        if response.status_code == 502:
+            raise HabrIsDownException()
         if response.status_code != 200:
             logger.warning("Request to {} failed: got status code {}".format(response.url, response.status_code))
             logger.warning(response.text)

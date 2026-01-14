@@ -45,7 +45,7 @@ from habrasanta.serializers import (
     MarkShippedSerializer,
     MarkDeliveredSerializer,
 )
-from habrasanta.utils import fetch_habr_profile
+from habrasanta.utils import fetch_habr_profile, HabrIsDownException
 from habrasanta.models import Event, Message, Participation, Season, User
 
 
@@ -887,6 +887,8 @@ class InfoView(APIView):
                 data["can_participate"] = request.user.can_participate
             except requests.exceptions.Timeout as e:
                 return Response({ "error": str(e) }, status=504)
+            except HabrIsDownException as e:
+                return Response({ "error": str(e) }, status=500)
         return Response(data)
 
 

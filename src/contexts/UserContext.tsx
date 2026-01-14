@@ -9,7 +9,7 @@ export const UserProvider: FunctionComponent = ({ children }) => {
   const [user, setUser] = useState(null as User | null);
 
   useEffect(() => {
-    fetch("/backend/info").then(res => res.json()).then(data => setUser(data));
+    fetch("/backend/info").then(res => res.json()).then(data => data.error ? alert(data.error) : setUser(data));
   }, []);
 
   return (
