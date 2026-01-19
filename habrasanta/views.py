@@ -516,8 +516,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         """
         return Response(Participation.objects.filter(
             season=self.get_object(),
-            gift_received__isnull=False,
-        ).values_list("user__username", flat=True))
+            gift_delivered_at__isnull=False,
+        ).values_list("user__login", flat=True))
 
     def check_season_active(self, season):
         if season.is_closed:
