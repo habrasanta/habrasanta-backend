@@ -503,6 +503,22 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             result[item["country"]] = item["count"]
         return Response(result)
 
+    @action(
+        detail=True,
+        permission_classes=[IsAdminUser],
+    )
+    @method_decorator(cache_control(private=True))
+    def happy_users(self, request, pk):
+        """
+        Returns all users who have received a gift in this season.
+
+        The user calling this method must be an admin.
+        """
+        return Response(Participation.objects.filter(
+            season=self.get_object(),
+            gift_received__isnull=False,
+        ).values_list("user__username", flat=True))
+
     def check_season_active(self, season):
         if season.is_closed:
             raise GenericAPIError("Этот сезон находится в архиве", "season_archived")
