@@ -535,6 +535,27 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             gift_shipped_at__isnull=True,
         ).values_list("user__login", flat=True))
 
+    @action(
+        detail=True,
+        permission_classes=[IsAdminUser],
+    )
+    @method_decorator(cache_control(private=True))
+    def lost_gifts(self, request, pk):
+        """
+        Returns all lost gifts in this season.
+
+        The user calling this method must be an admin.
+        """
+        return Response(Participation.objects.filter(
+            season=self.get_object(),
+            gift_shipped_at__isnull=False,
+            giftee__gift_delivered_at__isnull=True,
+        ).values(
+            from_user=F("user__login"),
+            to_user=F("giftee__user__login"),
+            shipped_at=F("gift_shipped_at"),
+        ))
+
     def check_season_active(self, season):
         if season.is_closed:
             raise GenericAPIError("Этот сезон находится в архиве", "season_archived")
