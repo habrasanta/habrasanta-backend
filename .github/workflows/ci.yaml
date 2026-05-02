@@ -8,7 +8,7 @@ jobs:
   test:
     name: Test Python
     runs-on: ubuntu-latest
-    container: python:3.9-alpine
+    container: python:3.13-alpine
     services:
       redis:
         image: redis:alpine
@@ -50,7 +50,7 @@ jobs:
     needs:
       - webpack
     runs-on: ubuntu-latest
-    container: python:3.9-alpine
+    container: python:3.13-alpine
     steps:
       - uses: actions/checkout@v3
       - run: pip install boto3
