@@ -10,10 +10,10 @@ from habrasanta import admin, views
 router = routers.SimpleRouter(trailing_slash=False)
 router.include_format_suffixes = False
 router.register("countries", views.CountryViewSet, basename="country")
-router.register("events", views.EventViewSet)
-router.register("messages", views.MessageViewSet)
-router.register("seasons", views.SeasonViewSet)
-router.register("users", views.UserViewSet)
+router.register("events", views.EventViewSet, basename="event")
+router.register("messages", views.MessageViewSet, basename="message")
+router.register("seasons", views.SeasonViewSet, basename="season")
+router.register("users", views.UserViewSet, basename="user")
 
 urlpatterns = [
     path("", views.IndexView.as_view()),
