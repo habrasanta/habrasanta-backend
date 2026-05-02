@@ -160,7 +160,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         Season.objects.create(
             id=2007,
@@ -212,7 +212,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -279,7 +279,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -347,7 +347,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -413,7 +413,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -480,7 +480,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -554,7 +554,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -621,7 +621,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -669,7 +669,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -762,7 +762,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -837,7 +837,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         Season.objects.create(
             id=2007,
@@ -872,7 +872,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -886,7 +886,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No Participation matches the given query."
         )
         boomburum = User.objects.create(login="Boomburum")
         inzeppelin = User.objects.create(login="inzeppelin")
@@ -972,7 +972,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No User matches the given query."
         )
         response = client.post("/api/v1/users/kafeman/ban")
         self.assertEqual(response.status_code, 418)
@@ -1021,7 +1021,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No User matches the given query."
         )
         User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/unban", {
@@ -1143,7 +1143,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No User matches the given query."
         )
         User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/allow_emails")
@@ -1188,7 +1188,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No User matches the given query."
         )
         user = User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
@@ -1250,7 +1250,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Страница не найдена."
+            "No User matches the given query."
         )
         user = User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
