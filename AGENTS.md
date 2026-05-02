@@ -14,7 +14,7 @@ The backend code is in the `habrasanta/` directory. A Django project and a Djang
 
 Always work in a virtual environment from the `venv/` directory. Never try installing something globally.
 
-To run tests, you need a Redis instance. Start it by using `podman run --rm -p 127.0.0.1:6379:6379 docker.io/library/redis:8-alpine`. Stop it when not needed anymore.
+To run the tests, you need a Redis instance. Start it by using `podman run -d --rm -p 127.0.0.1:6379:6379 docker.io/library/redis:8-alpine`. Stop it when you finished testing.
 
 ## Frontend
 
