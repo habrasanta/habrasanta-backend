@@ -1,6 +1,6 @@
 celery==5.3.6
 django-celery-results==2.5.1
-django-countries==7.5.1
+django-countries==8.2.0
 Django==4.2.8
 djangorestframework==3.14.0
 drf-spectacular==0.26.5
