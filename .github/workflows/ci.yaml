@@ -20,57 +20,15 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
-        run: |
-          echo '{}' > assets-manifest.json
-          python manage.py test
+        run: python manage.py test
         env:
           REDIS_URL: redis://redis
-
-  webpack:
-    name: Build WebPack bundle
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - name: Install dependencies
-        run: npm ci
-      - name: Make sure there are no type checking errors
-        run: npx tsc --noEmit
-      - run: npm run build
-        env:
-          NODE_ENV: production
-      - uses: actions/upload-artifact@v4
-        with:
-          name: assets-manifest.json
-          path: assets-manifest.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: ./dist
-
-  deploy_s3:
-    name: Deploy S3
-    needs:
-      - webpack
-    runs-on: ubuntu-latest
-    container: python:3.13-alpine
-    steps:
-      - uses: actions/checkout@v3
-      - run: pip install boto3
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      - run: python deploy_s3.py
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESSKEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRETKEY }}
+          DJANGO_VITE_DEV_MODE: False
 
   docker:
     name: Deploy Docker image
     needs:
       - test
-      - webpack
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -81,9 +39,6 @@ jobs:
         with:
           images: ghcr.io/habrasanta/backend
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v4
-        with:
-          name: assets-manifest.json
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3

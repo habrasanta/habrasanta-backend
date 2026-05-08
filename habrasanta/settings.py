@@ -13,6 +13,7 @@ ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:9000"]
 
 INSTALLED_APPS = [
+    "django_vite",
     "habrasanta",
     "django_countries",
     "django_celery_results",
@@ -127,8 +128,13 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "backend/static/"
+STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+  BASE_DIR / "dist"
+]
+
+DJANGO_VITE_DEV_MODE = os.getenv("DJANGO_VITE_DEV_MODE", "True").lower() in ("true", "yes", "on", "1")
 
 LOGIN_URL = "login"
 
@@ -160,6 +166,3 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 
 HABRASANTA_ADMINS = os.getenv("HABRASANTA_ADMINS", "kafeman,negasus").split(",")
 HABRASANTA_KARMA_LIMIT = 5.0
-
-with open(BASE_DIR / "assets-manifest.json", "r") as f:
-    WEBPACK = json.load(f)
