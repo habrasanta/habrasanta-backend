@@ -4,4 +4,4 @@ db.sqlite3
 /dist/
 /node_modules/
 /.env
-/assets-manifest.json
+/staticfiles/
