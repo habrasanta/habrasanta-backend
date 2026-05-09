@@ -10,7 +10,7 @@ RUN npm run build
 
 FROM python:3.13-alpine
 WORKDIR /app
-EXPOSE 9090
+EXPOSE 8080
 ENV DEBUG=False
 ENV DJANGO_VITE_DEV_MODE=False
 
@@ -18,10 +18,10 @@ COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 COPY requirements.txt manage.py ./
-RUN apk add --no-cache libpq libc-dev linux-headers postgresql-dev \
-    && pip install --no-cache-dir uwsgi psycopg2 \
+RUN apk add --no-cache libpq postgresql-dev \
+    && pip install --no-cache-dir gunicorn psycopg2 \
     && pip install --no-cache-dir -r requirements.txt \
-    && apk del libc-dev linux-headers postgresql-dev
+    && apk del postgresql-dev
 
 COPY habrasanta ./habrasanta
 COPY --from=frontend-builder /app/dist ./dist
@@ -29,4 +29,4 @@ COPY --from=frontend-builder /app/dist ./dist
 RUN python -m compileall habrasanta && \
     python manage.py collectstatic --no-input
 
-CMD ["uwsgi", "--threads=20", "--uwsgi-socket=:9090", "--module=habrasanta.wsgi"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "10", "habrasanta.wsgi"]
