@@ -12,7 +12,6 @@ FROM python:3.13-alpine
 WORKDIR /app
 EXPOSE 8080
 ENV DEBUG=False
-ENV DJANGO_VITE_DEV_MODE=False
 
 COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
@@ -28,5 +27,10 @@ COPY --from=frontend-builder /app/dist ./dist
 
 RUN python -m compileall habrasanta && \
     python manage.py collectstatic --no-input
+
+# Set after "python manage.py collectstatic", otherwise there is a warning:
+# Cannot read Vite manifest file for app default at /app/staticfiles/manifest.json :
+#     [Errno 2] No such file or directory: '/app/staticfiles/manifest.json'
+ENV DJANGO_VITE_DEV_MODE=False
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "10", "habrasanta.wsgi"]
