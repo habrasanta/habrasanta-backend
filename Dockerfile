@@ -2,7 +2,6 @@ FROM node:24-alpine AS frontend-builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
-ENV NODE_ENV=production
 COPY tsconfig.json vite.config.ts ./
 COPY src ./src
 RUN npm run build
