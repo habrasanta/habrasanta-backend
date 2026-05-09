@@ -7,3 +7,4 @@ djangorestframework==3.17.1
 drf-spectacular==0.29.0
 redis==7.4.0
 requests==2.33.1
+whitenoise==6.12.0
