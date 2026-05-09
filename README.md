@@ -1,4 +1,4 @@
-# Habrasanta backend
+# Secret Santa - Habr.com edition
 
 ## Testing without installation
 
@@ -32,3 +32,35 @@ To make sure it still works:
 ```bash
 $ python manage.py test
 ```
+
+## Production deployment
+
+Use Docker image `ghcr.io/habrasanta/backend`,
+tag `latest` for the staging environment, `v*` for production.
+
+Default command starts an HTTP server on port 8080.
+
+To send out notifications, run a worker container using the command
+`celery -A habrasanta worker -P solo -l INFO`.
+
+For all containers, set the following environment variables:
+
+| Name| Value |
+| ------------- | ------------- |
+| `DEBUG` | `True` on staging, `False` in production. |
+| `SECRET_KEY` | Any random string. |
+| `DB_ENGINE` | `django.db.backends.postgresql` |
+| `DB_NAME` | DB name. |
+| `DB_USER` | Username to connect to the DB. |
+| `DB_PASS` | Password to connect to the DB. |
+| `DB_HOST` | IP address or hostname of the DB. |
+| `REDIS_URL` | Where to find redis? E.g. `redis://redis.example.com/1` |
+| `HABR_CLIENT_ID` | Client ID for access to the Habr API. |
+| `HABR_CLIENT_SECRET` | Client secret for access to the Habr API. |
+| `HABR_APIKEY` | API key for access to the Habr API. |
+| `EMAIL_BACKEND` | `django.core.mail.backends.smtp.EmailBackend` |
+| `EMAIL_HOST` | IP address or hostname of the SMTP server. |
+| `EMAIL_PORT` | Port number to connect to the SMTP server. |
+| `EMAIL_HOST_USER` | Username to connect to the SMTP server. |
+| `EMAIL_HOST_PASSWORD` | Password to connect to the SMTP server. |
+| `AUTHENTICATION_BACKEND` | `habrasanta.auth.PublicHabrBackend` in production, do not set on staging (defaults to `habrasanta.auth.FakeBackend`). |
