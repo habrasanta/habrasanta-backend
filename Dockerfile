@@ -33,5 +33,4 @@ RUN python -m compileall habrasanta && \
 #     [Errno 2] No such file or directory: '/app/staticfiles/manifest.json'
 ENV DJANGO_VITE_DEV_MODE=False
 
-ENV FORWARDED_ALLOW_IPS=172.17.0.0/16,172.18.0.0/16
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "10", "habrasanta.wsgi"]
