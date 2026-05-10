@@ -13,14 +13,14 @@ def log_user_login(sender, user, request, **kwargs):
             "произведен вход в ваш аккаунт",
             "Приветствуем, {}!\n\n".format(user.login) +
             "Так как у вас имеется доступ в админку Хабра-АДМ, то мы вынуждены проинформировать вас о новом входе под вашим аккаунтом:\n\n" +
-            "IP-адрес: {}\n".format(request.META["HTTP_X_REAL_IP"]) +
+            "IP-адрес: {}\n".format(request.META.get("HTTP_X_REAL_IP")) +
             "User-Agent: {}\n\n".format(request.META.get("HTTP_USER_AGENT", "неизвестен")) +
             "Если это были не вы, просьба немедленно сообщить kafeman'у."
         )
     Event.objects.create(
         typ=Event.LOGGED_IN,
         sub=user,
-        ip_address=request.META["HTTP_X_REAL_IP"],
+        ip_address=request.META.get("HTTP_X_REAL_IP"),
     )
 
 
@@ -30,5 +30,5 @@ def log_user_logout(sender, user, request, **kwargs):
     Event.objects.create(
         typ=Event.LOGGED_OUT,
         sub=user,
-        ip_address=request.META["HTTP_X_REAL_IP"],
+        ip_address=request.META.get("HTTP_X_REAL_IP"),
     )
