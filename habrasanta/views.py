@@ -137,7 +137,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.ENROLLED,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         return Response({
             "season": SeasonSerializer(season).data,
@@ -165,7 +165,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.UNENROLLED,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         return Response({
             "season": SeasonSerializer(season).data,
@@ -251,7 +251,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             sub=request.user,
             user=user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         # Send 204 No Content.
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -287,7 +287,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.GIFT_SENT,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         transaction.on_commit(send_notification.s(
             participation.giftee.user.id,
@@ -343,7 +343,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.GIFT_RECEIVED,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         transaction.on_commit(send_notification.s(
             participation.santa.user.id,
@@ -411,7 +411,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.GIFTEE_MAILED,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         # Notification will be send by cron.
         return Response(serializer.data)
@@ -464,7 +464,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.SANTA_MAILED,
             sub=request.user,
             season=season,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         # Notification will be send by cron.
         return Response(serializer.data)
@@ -700,7 +700,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.BANNED,
             sub=request.user,
             user=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         transaction.on_commit(send_notification.s(
             user.id,
@@ -737,7 +737,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.UNBANNED,
             sub=request.user,
             user=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         transaction.on_commit(send_notification.s(
             user.id,
@@ -771,7 +771,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             typ=Event.SUBSCRIBED,
             sub=request.user,
             user=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         serializer = self.get_serializer(user)
         return Response(serializer.data)
@@ -808,7 +808,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             sub=request.user,
             season=participation.season,
             obo=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         # Notifications for the user themselves:
         transaction.on_commit(send_notification.s(
@@ -869,7 +869,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             sub=request.user,
             season=participation.season,
             obo=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         # Use the task queue, because Habr is down sometimes and the badge is important for some users.
         transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
@@ -1053,7 +1053,7 @@ def unsubscribe(request):
         Event.objects.create(
             typ=Event.UNSUBSCRIBED,
             sub=user,
-            ip_address=request.META["REMOTE_ADDR"],
+            ip_address=request.META["HTTP_X_REAL_IP"],
         )
         user.email_allowed = False
         user.save()
