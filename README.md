@@ -48,7 +48,7 @@ For all containers, set the following environment variables:
 | Name| Value |
 | ------------- | ------------- |
 | `DEBUG` | `True` on staging, `False` in production. |
-| `SECRET_KEY` | Any random string. |
+| `SECRET_KEY` | Any random string for cookies and tokens signing. Use something like `openssl rand -base64 32` to generate. |
 | `DB_ENGINE` | `django.db.backends.postgresql` |
 | `DB_NAME` | DB name. |
 | `DB_USER` | Username to connect to the DB. |
