@@ -34,4 +34,4 @@ RUN python -m compileall habrasanta && \
 #     [Errno 2] No such file or directory: '/app/staticfiles/manifest.json'
 ENV DJANGO_VITE_DEV_MODE=False
 
-CMD ["gunicorn", "--workers", "10", "habrasanta.wsgi"]
+CMD ["gunicorn", "--workers", "2", "--threads", "5", "habrasanta.wsgi"]
