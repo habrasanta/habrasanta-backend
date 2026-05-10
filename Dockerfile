@@ -12,6 +12,7 @@ FROM python:3.13-alpine
 WORKDIR /app
 EXPOSE 8080
 ENV DEBUG=False
+ENV PORT=8080
 
 COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
@@ -33,4 +34,4 @@ RUN python -m compileall habrasanta && \
 #     [Errno 2] No such file or directory: '/app/staticfiles/manifest.json'
 ENV DJANGO_VITE_DEV_MODE=False
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "10", "habrasanta.wsgi"]
+CMD ["gunicorn", "--workers", "10", "habrasanta.wsgi"]

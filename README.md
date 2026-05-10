@@ -69,4 +69,5 @@ For the container running gunicorn you might also want to adjust the following v
 
 | Name | Description | Default |
 | ---- | ----------- | ------- |
+| `PORT` | TCP port to listen on. | `8080` |
 | `FORWARDED_ALLOW_IPS` | List of IP addresses or CIDR networks from which some `X-Forwarded-` headers are accepted. See [here](https://gunicorn.org/reference/settings/#forwarded_allow_ips) for more details. | `127.0.0.1,::1` |
