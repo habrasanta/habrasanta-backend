@@ -64,3 +64,9 @@ For all containers, set the following environment variables:
 | `EMAIL_HOST_USER` | Username to connect to the SMTP server. |
 | `EMAIL_HOST_PASSWORD` | Password to connect to the SMTP server. |
 | `AUTHENTICATION_BACKEND` | `habrasanta.auth.PublicHabrBackend` in production, do not set on staging (defaults to `habrasanta.auth.FakeBackend`). |
+
+For the container running gunicorn you might also want to adjust the following variables:
+
+| Name | Description | Default |
+| ---- | ----------- | ------- |
+| `FORWARDED_ALLOW_IPS` | List of IP addresses or CIDR networks from which some `X-Forwarded-` headers are accepted. See [here](https://gunicorn.org/reference/settings/#forwarded_allow_ips) for more details. | `172.17.0.0/16,172.18.0.0/16` |
