@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.urls import include, path
+from django.views.decorators.cache import cache_control
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework import routers
@@ -29,9 +30,9 @@ urlpatterns = [
     path("django_admin/", admin.site.urls),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
     path("api/explorer", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    path("terms", TemplateView.as_view(template_name="habrasanta/terms.html")),
-    path("privacy", TemplateView.as_view(template_name="habrasanta/privacy.html")),
-    path("robots.txt", TemplateView.as_view(template_name="habrasanta/robots.txt", content_type="text/plain")),
+    path("terms", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/terms.html"))),
+    path("privacy", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/privacy.html"))),
+    path("robots.txt", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/robots.txt", content_type="text/plain"))),
 ]
 
 if settings.DEBUG:
