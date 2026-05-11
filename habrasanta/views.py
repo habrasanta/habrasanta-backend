@@ -909,6 +909,10 @@ class EventViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CountryViewSet(viewsets.ViewSet):
+    # Override default SessionAuthentication which triggers "Vary: Cookie" and
+    # prevents caching of this static view.
+    authentication_classes = []
+
     @method_decorator(cache_control(public=True, max_age=60 * 60 * 24 * 30))
     def list(self, request):
         """
