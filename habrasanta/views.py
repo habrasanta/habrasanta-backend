@@ -1023,6 +1023,11 @@ class IndexView(View):
 
 class FrontendView(View):
     def get(self, request, year):
+        now = timezone.now()
+        if not request.user.is_anonymous and (
+                not request.user.last_online or request.user.last_online < now - datetime.timedelta(minutes=15)):
+            request.user.last_online = now
+            request.user.save()
         season = get_object_or_404(Season, id=year)
         return render(request, "habrasanta/frontend.html", {
             "season": SeasonSerializer(season).data,
