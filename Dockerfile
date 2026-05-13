@@ -23,6 +23,7 @@ RUN apk add --no-cache libpq postgresql-dev \
     && pip install --no-cache-dir -r requirements.txt \
     && apk del postgresql-dev
 
+COPY crontab /etc/crontabs/root
 COPY habrasanta ./habrasanta
 COPY --from=frontend-builder /app/dist ./dist
 

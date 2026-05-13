@@ -1,0 +1,2 @@
+*/10 * * * * /usr/local/bin/python /app/manage.py cron
+15   3 * * * /usr/local/bin/python /app/manage.py clearsessions
