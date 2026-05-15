@@ -1,8 +1,19 @@
 # Secret Santa - Habr.com edition
 
+https://habra-adm.ru was founded in 2012 by @negasus and @kafeman who were inspired by a similar project on Dirty.
+
+In 2013 Habr decided to collaborate by introducing OAuth support on their side and making advertisements on the website.
+[Valery Novosylov](https://novosylov.livejournal.com) created a wonderful web design.
+
+In 2015 tan4ikweb created a wonderful web design for a spinoff version on Geektimes (not available anymore).
+The source code was uploaded to GitHub.
+
+In 2023 Boomburum joined the organization team and @Inzeppelin upgraded the frontend.
+Habr lawyers also helped writing [terms of use](https://habra-adm.ru/terms) and a [privacy policy](https://habra-adm.ru/privacy) for the project.
+
 ## Testing without installation
 
-Visit https://beta.habrasanta.org
+Visit https://beta.habrasanta.org or join other Secret Santas on https://habra-adm.ru.
 
 ## Running locally
 
@@ -83,5 +94,5 @@ For the container running gunicorn you might also want to adjust the following v
 | `FORWARDED_ALLOW_IPS` | List of IP addresses or CIDR networks from which some `X-Forwarded-` headers are accepted. See [here](https://gunicorn.org/reference/settings/#forwarded_allow_ips) for more details. | `127.0.0.1,::1` |
 
 Beware that the app expects the user IP address being in the `X-Real-IP` header.
-It also a good idea to enable caching at the frontend level (e.g. Nginx), especially for the `/static/` routes.
+It is also a good idea to enable caching at the frontend level (e.g. Nginx), especially for the `/static/` routes.
 The backend is expected to always return correct `Cache-Control` and `Vary` headers indicating which requests may be cached.
