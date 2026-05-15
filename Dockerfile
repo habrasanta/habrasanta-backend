@@ -18,10 +18,10 @@ COPY docker-entrypoint.sh /
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 COPY requirements.txt manage.py ./
-RUN apk add --no-cache libpq postgresql-dev \
-    && pip install --no-cache-dir gunicorn psycopg2 \
+RUN apk add --no-cache libpq postgresql-dev mariadb-connector-c mariadb-dev \
+    && pip install --no-cache-dir gunicorn psycopg2 mysqlclient \
     && pip install --no-cache-dir -r requirements.txt \
-    && apk del postgresql-dev
+    && apk del postgresql-dev mariadb-dev
 
 COPY crontab /etc/crontabs/root
 COPY habrasanta ./habrasanta

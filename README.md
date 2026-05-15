@@ -70,7 +70,7 @@ For all containers, set the following environment variables:
 | ------------- | ------------- |
 | `DEBUG` | `True` on staging, `False` in production. |
 | `SECRET_KEY` | Any random string to sign cookies and tokens. Use something like `openssl rand -base64 32` to generate. |
-| `DB_ENGINE` | `django.db.backends.postgresql` |
+| `DB_ENGINE` | Which DB adapter to use, e.g. `django.db.backends.postgresql` for PostgreSQL or `django.db.backends.mysql` for MySQL/MardiDB. Check out [this](https://docs.djangoproject.com/en/6.0/ref/databases/) and [this](https://docs.djangoproject.com/en/6.0/ref/settings/#databases) to learn more. |
 | `DB_NAME` | DB name. |
 | `DB_USER` | Username to connect to the DB. |
 | `DB_PASS` | Password to connect to the DB. |
