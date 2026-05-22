@@ -94,6 +94,7 @@ class Migration(migrations.Migration):
                 ('read_date', models.DateTimeField(blank=True, db_index=True, editable=False, null=True)),
                 ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.participation')),
                 ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.participation')),
+                ('season', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.season')),
             ],
             options={
                 'ordering': ['send_date'],

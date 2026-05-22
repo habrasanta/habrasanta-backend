@@ -222,7 +222,7 @@ class Participation(models.Model):
 
 
 class Message(models.Model):
-    # TODO: (from, to, season)? Otherwise, cross-season messages are technically possible
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, editable=False)
     sender = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
     recipient = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
     text = models.TextField(max_length=400, db_column="body")

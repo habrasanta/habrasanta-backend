@@ -406,7 +406,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         # TODO: prevent spamming with too many messages
         serializer = self.get_serializer(data=request.data, context={ "me": participation })
         serializer.is_valid(raise_exception=True)
-        serializer.save(sender=participation, recipient=participation.giftee)
+        serializer.save(season=season, sender=participation, recipient=participation.giftee)
         Event.objects.create(
             typ=Event.GIFTEE_MAILED,
             sub=request.user,
@@ -459,7 +459,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         # TODO: prevent spamming with too many messages
         serializer = self.get_serializer(data=request.data, context={ "me": participation })
         serializer.is_valid(raise_exception=True)
-        serializer.save(sender=participation, recipient=participation.santa)
+        serializer.save(season=season, sender=participation, recipient=participation.santa)
         Event.objects.create(
             typ=Event.SANTA_MAILED,
             sub=request.user,

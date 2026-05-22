@@ -247,11 +247,13 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"[]")
         Message.objects.create(
+            season=season,
             sender=participation,
             recipient=giftee,
             text="Hello World",
         )
         Message.objects.create(
+            season=season,
             sender=giftee,
             recipient=participation,
             text="Goodbye Cruel World",
@@ -381,11 +383,13 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"[]")
         Message.objects.create(
+            season=season,
             sender=participation,
             recipient=santa,
             text="Hello World",
         )
         Message.objects.create(
+            season=season,
             sender=santa,
             recipient=participation,
             text="Goodbye Cruel World",
