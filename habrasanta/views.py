@@ -381,12 +381,11 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         participation = self.get_participation(season)
         if not participation.giftee:
             raise NotFound("Вам еще не назначен получателя подарка")
-        # TODO: select_related() ? Check the SQL queries!
-        messages = Message.objects.filter(
-            Q(sender=participation, recipient=participation.giftee) |
-            Q(sender=participation.giftee, recipient=participation)
+        messages = Message.objects.filter(season=season).filter(
+            Q(from_user=participation.user, to_user=participation.giftee.user) |
+            Q(from_user=participation.giftee.user, to_user=participation.user)
         )
-        serializer = self.get_serializer(messages, many=True, context={ "me": participation })
+        serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
 
     @giftee_chat.mapping.post
@@ -404,9 +403,9 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         if not participation.giftee:
             raise NotFound("Вам еще не назначен получателя подарка")
         # TODO: prevent spamming with too many messages
-        serializer = self.get_serializer(data=request.data, context={ "me": participation })
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(season=season, sender=participation, recipient=participation.giftee)
+        serializer.save(season=season, from_user=participation.user, to_user=participation.giftee.user)
         Event.objects.create(
             typ=Event.GIFTEE_MAILED,
             sub=request.user,
@@ -434,12 +433,11 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         participation = self.get_participation(season)
         if not hasattr(participation, "santa"):
             raise NotFound("Вам еще не назначен Дед Мороз")
-        # TODO: select_related() ? Check the SQL queries!
-        messages = Message.objects.filter(
-            Q(sender=participation, recipient=participation.santa) |
-            Q(sender=participation.santa, recipient=participation)
+        messages = Message.objects.filter(season=season).filter(
+            Q(from_user=participation.user, to_user=participation.santa.user) |
+            Q(from_user=participation.santa.user, to_user=participation.user)
         )
-        serializer = self.get_serializer(messages, many=True, context={ "me": participation })
+        serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
 
     @santa_chat.mapping.post
@@ -457,9 +455,9 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         if not hasattr(participation, "santa"):
             raise NotFound("Вам еще не назначен Дед Мороз")
         # TODO: prevent spamming with too many messages
-        serializer = self.get_serializer(data=request.data, context={ "me": participation })
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(season=season, sender=participation, recipient=participation.santa)
+        serializer.save(season=season, from_user=participation.user, to_user=participation.santa.user)
         Event.objects.create(
             typ=Event.SANTA_MAILED,
             sub=request.user,
@@ -588,7 +586,7 @@ class MessageViewSet(viewsets.GenericViewSet):
         ids = serializer.validated_data["ids"]
         count = Message.objects.filter(
             id__in=ids,
-            recipient__user=request.user,
+            to_user=request.user,
             read_date__isnull=True,
             # read_date was introduced on this day, all messages before must stay NULL.
             send_date__gte=timezone.make_aware(datetime.datetime(2016, 12, 20))

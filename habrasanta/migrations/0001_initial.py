@@ -92,8 +92,8 @@ class Migration(migrations.Migration):
                 ('text', models.TextField(db_column='body', max_length=400)),
                 ('send_date', models.DateTimeField(db_index=True, default=django.utils.timezone.now, editable=False)),
                 ('read_date', models.DateTimeField(blank=True, db_index=True, editable=False, null=True)),
-                ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.participation')),
-                ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.participation')),
+                ('to_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.user')),
+                ('from_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.user')),
                 ('season', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='habrasanta.season')),
             ],
             options={

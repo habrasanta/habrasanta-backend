@@ -223,8 +223,8 @@ class Participation(models.Model):
 
 class Message(models.Model):
     season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="+")
-    sender = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
-    recipient = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     text = models.TextField(max_length=400, db_column="body")
     send_date = models.DateTimeField(default=timezone.now, db_index=True, editable=False)
     read_date = models.DateTimeField(blank=True, null=True, db_index=True, editable=False)

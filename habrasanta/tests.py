@@ -248,14 +248,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.content, b"[]")
         Message.objects.create(
             season=season,
-            sender=participation,
-            recipient=giftee,
+            from_user=participation.user,
+            to_user=giftee.user,
             text="Hello World",
         )
         Message.objects.create(
             season=season,
-            sender=giftee,
-            recipient=participation,
+            from_user=giftee.user,
+            to_user=participation.user,
             text="Goodbye Cruel World",
         )
         response = client.get("/api/v1/seasons/2007/giftee_chat")
@@ -332,7 +332,7 @@ class SeasonViewSetTestCase(TestCase):
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], "Hello World")
         self.assertTrue(obj["is_author"])
-        msg = Message.objects.get(sender=participation, recipient=giftee)
+        msg = Message.objects.get(from_user=participation.user, to_user=giftee.user)
         self.assertEqual(msg.text, "Hello World")
 
     def test_santa_chat(self):
@@ -384,14 +384,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.content, b"[]")
         Message.objects.create(
             season=season,
-            sender=participation,
-            recipient=santa,
+            from_user=participation.user,
+            to_user=santa.user,
             text="Hello World",
         )
         Message.objects.create(
             season=season,
-            sender=santa,
-            recipient=participation,
+            from_user=santa.user,
+            to_user=participation.user,
             text="Goodbye Cruel World",
         )
         response = client.get("/api/v1/seasons/2007/santa_chat")
@@ -467,7 +467,7 @@ class SeasonViewSetTestCase(TestCase):
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], "Hello World")
         self.assertTrue(obj["is_author"])
-        msg = Message.objects.get(sender=participation, recipient=santa)
+        msg = Message.objects.get(from_user=participation.user, to_user=santa.user)
         self.assertEqual(msg.text, "Hello World")
 
     def test_mark_delivered(self):

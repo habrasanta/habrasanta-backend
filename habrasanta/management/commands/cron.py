@@ -81,10 +81,10 @@ class Command(BaseCommand):
             queryset = Message.objects.filter(
                 read_date=None,
                 send_date__gt=Coalesce(
-                    F("recipient__user__last_chat_notification"),
+                    F("to_user__last_chat_notification"),
                     now - timedelta(days=60),
                 ),
-            ).values("recipient__user").annotate(cnt=Count("id"))
+            ).values("to_user").annotate(cnt=Count("id"))
             for result in queryset:
                 plural = self.russian_plural(
                     result["cnt"],
@@ -93,19 +93,19 @@ class Command(BaseCommand):
                     "новых сообщений" # 5
                 )
                 transaction.on_commit(send_notification.s(
-                    result["recipient__user"],
+                    result["to_user"],
                     "Вам прислали <b>{}</b> {} ".format(result["cnt"], plural) +
                     "- не тяните с прочтением, наверняка там что-то важное!"
                 ).delay)
                 transaction.on_commit(send_email.s(
-                    result["recipient__user"],
+                    result["to_user"],
                     "у вас {} {}".format(result["cnt"], plural),
                     "Приветствуем!\n\n" +
                     "Вам прислали {} {} ".format(result["cnt"], plural) +
                     "- не тяните с прочтением, наверняка там что-то важное!"
                 ).delay)
-                User.objects.filter(pk=result["recipient__user"]).update(last_chat_notification=now)
-                self.stdout.write(self.style.SUCCESS("User {} notified".format(result["recipient__user"])))
+                User.objects.filter(pk=result["to_user"]).update(last_chat_notification=now)
+                self.stdout.write(self.style.SUCCESS("User {} notified".format(result["to_user"])))
             else:
                 print("Nobody has received new messages yet")
 
