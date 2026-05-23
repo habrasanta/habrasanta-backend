@@ -25,6 +25,15 @@ jobs:
           REDIS_URL: redis://redis
           DJANGO_VITE_DEV_MODE: False
 
+  mypy:
+    runs-on: ubuntu-latest
+    container: python:3.13-alpine
+    steps:
+      - uses: actions/checkout@v3
+      - run: pip install -r requirements.txt
+      - run: pip install mypy django-stubs djangorestframework-stubs celery-types
+      - run: mypy habrasanta/
+
   docker:
     name: Deploy Docker image
     needs:

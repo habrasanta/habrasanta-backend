@@ -29,7 +29,7 @@ class User(models.Model):
     last_chat_notification = models.DateTimeField("последнее уведомление о новых сообщениях", blank=True, null=True, editable=False)
 
     USERNAME_FIELD = "login"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: list[str] = []
 
     class Meta:
         verbose_name = "пользователь"
@@ -153,7 +153,7 @@ class Season(models.Model):
 
     gallery_url = models.URLField("пост хвастовства подарками", blank=True)
 
-    users = models.ManyToManyField(User, related_name="seasons", through="Participation")
+    #users = models.ManyToManyField(User, related_name="seasons", through="Participation")
 
     class Meta:
         get_latest_by = "id"
@@ -188,7 +188,6 @@ class Season(models.Model):
             raise ValidationError(error_dict)
 
 
-# TODO: Create two match entities per participation, it's more efficient.
 class Participation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, editable=False)
@@ -206,7 +205,7 @@ class Participation(models.Model):
     fullname = models.CharField("полное имя", max_length=80)
     postcode = models.CharField("индекс", max_length=20)
     address = models.TextField("адрес", max_length=200)
-    country = CountryField("страна", null=True)
+    country = CountryField(verbose_name="страна", null=True)
 
     gift_shipped_at = models.DateTimeField("подарок отправлен", blank=True, null=True, db_column="gift_sent")
     gift_delivered_at = models.DateTimeField("подарок получен", blank=True, null=True, db_column="gift_received")
