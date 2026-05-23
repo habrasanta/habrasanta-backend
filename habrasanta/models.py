@@ -222,7 +222,7 @@ class Participation(models.Model):
 
 
 class Message(models.Model):
-    season = models.ForeignKey(Season, on_delete=models.CASCADE, editable=False)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, related_name="+")
     sender = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
     recipient = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name="+")
     text = models.TextField(max_length=400, db_column="body")
