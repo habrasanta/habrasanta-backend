@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, F, Q
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, HttpRequest
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect, render
@@ -28,6 +28,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from urllib.parse import urlparse
+from typing import cast
 
 from habrasanta.celery import send_email, send_notification, give_badge
 from habrasanta.serializers import (
@@ -56,34 +57,36 @@ class GenericAPIError(APIException):
     status_code = status.HTTP_418_IM_A_TEAPOT
 
 
-class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
+class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
     serializer_class = SeasonSerializer
     queryset = Season.objects.all()
 
-    def get_permissions(self):
+    def get_permissions(self) -> list[BasePermission]:
         if self.action == "create":
             return [IsAdminUser()]
-        return super().get_permissions()
+        return list(cast(list[BasePermission], super().get_permissions()))
 
-    def create(self, request):
+    def create(self, request: Request) -> Response:
         """
         Creates a new season.
 
         The user calling this method must be an admin.
         """
+        user = request.user
+        assert isinstance(user, User)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         season = serializer.save()
         Event.objects.create(
             typ=Event.SEASON_CREATED,
-            sub=request.user,
+            sub=user,
             season=season,
         )
         return Response(serializer.data)
 
     @action(detail=False)
     @method_decorator(cache_control(public=True))
-    def latest(self, request):
+    def latest(self, request: Request) -> Response:
         """
         Returns the latest season or 404 if there are no seasons yet.
         """
@@ -100,7 +103,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     @method_decorator(cache_control(private=True))
-    def participation(self, request, pk):
+    def participation(self, request: Request, pk: str) -> Response:
         """
         Returns the participation of the current user in the given season
         or an error, if the user is not participating.
@@ -111,7 +114,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     @participation.mapping.post
-    def create_participation(self, request, pk):
+    def create_participation(self, request: Request, pk: str) -> Response:
         """
         Enrolls the current user to the given season.
 
@@ -120,22 +123,24 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user is not qualified for participation in our club (does the user have enough karma?)
         - The user is already enrolled for this season (is another tab open?)
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         if not season.is_registration_open:
             raise GenericAPIError("Регистрация на этот сезон уже невозможна", "the_die_is_cast")
-        if not request.user.can_participate:
+        if not user.can_participate:
             raise PermissionDenied("Вы не можете участвовать в нашем клубе", "unqualified")
-        if Participation.objects.filter(user=self.request.user, season=season).exists():
+        if Participation.objects.filter(user=user, season=season).exists():
             raise GenericAPIError("Вы уже зарегистрированы на этот сезон", "dual_participation")
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(season=season, user=request.user)
+        serializer.save(season=season, user=user)
         season.member_count += 1
         season.save()
         Event.objects.create(
             typ=Event.ENROLLED,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -145,7 +150,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
     @participation.mapping.delete
-    def cancel_participation(self, request, pk):
+    def cancel_participation(self, request: Request, pk: str) -> Response:
         """
         Cancels the participation of the current user in the given season.
 
@@ -153,6 +158,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user is not participating in this season.
         - The registration has closed (too late - now, you must send a gift).
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         participation = self.get_participation(season)
@@ -163,7 +170,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         season.save()
         Event.objects.create(
             typ=Event.UNENROLLED,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -178,7 +185,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
         url_path="participants/(?P<login>[^/.]+)",
     )
-    def kick_participant(self, request, pk, login):
+    def kick_participant(self, request: Request, pk: str, login: str) -> Response:
         """
         Cancels participation of the given user.
 
@@ -187,6 +194,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 
         The user calling this method must be an admin.
         """
+        sub = request.user
+        assert isinstance(sub, User)
         season = self.get_object()
         user = get_object_or_404(User, login__iexact=login)
         participation = get_object_or_404(Participation, user=user, season=season)
@@ -200,7 +209,6 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             assert santa
             assert giftee
             participation.delete()
-            participation = None
             santa.giftee = giftee
             santa.save()
             # Avoid loops of less than 3 people.
@@ -248,7 +256,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         # Log the event.
         Event.objects.create(
             typ=Event.UNENROLLED,
-            sub=request.user,
+            sub=sub,
             user=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
@@ -261,7 +269,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         permission_classes=[IsAuthenticated],
     )
-    def mark_shipped(self, request, pk):
+    def mark_shipped(self, request: Request, pk: str) -> Response:
         """
         Tells the club, the current user has shipped a gift to their giftee.
 
@@ -272,6 +280,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user has no giftee assigned yet (is registration still open?)
         - The user has already told the club, they had sent a gift.
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         participation = self.get_participation(season)
@@ -285,7 +295,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         participation.save()
         Event.objects.create(
             typ=Event.GIFT_SENT,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -314,7 +324,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         permission_classes=[IsAuthenticated],
     )
-    def mark_delivered(self, request, pk):
+    def mark_delivered(self, request: Request, pk: str) -> Response:
         """
         Tells the club the current user has received a gift.
 
@@ -326,6 +336,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user has already told the club, they had received a gift.
         - Santa hasn't told the club yet, the gift was sent.
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         participation = self.get_participation(season)
@@ -341,7 +353,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         participation.save()
         Event.objects.create(
             typ=Event.GIFT_RECEIVED,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -369,7 +381,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     @method_decorator(cache_control(private=True))
-    def giftee_chat(self, request, pk):
+    def giftee_chat(self, request: Request, pk: str) -> Response:
         """
         Returns all chat messages between the current user and their giftee in the given season.
 
@@ -389,7 +401,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     @giftee_chat.mapping.post
-    def post_giftee_chat(self, request, pk):
+    def post_giftee_chat(self, request: Request, pk: str) -> Response:
         """
         Sends a chat message to the giftee of the current user in the given season.
 
@@ -397,6 +409,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user is not participating in this season.
         - The user has no giftee assigned yet (is registration still open?)
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         participation = self.get_participation(season)
@@ -408,7 +422,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.save(season=season, from_user=participation.user, to_user=participation.giftee.user)
         Event.objects.create(
             typ=Event.GIFTEE_MAILED,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -421,7 +435,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     @method_decorator(cache_control(private=True))
-    def santa_chat(self, request, pk):
+    def santa_chat(self, request: Request, pk: str) -> Response:
         """
         Returns all chat messages between the current user and their santa in the given season.
 
@@ -441,7 +455,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     @santa_chat.mapping.post
-    def post_santa_chat(self, request, pk):
+    def post_santa_chat(self, request: Request, pk: str) -> Response:
         """
         Sends a chat message to the santa of the current user in the given season.
 
@@ -449,6 +463,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         - The user is not participating in this season.
         - The user has no santa assigned yet (is registration still open?)
         """
+        user = request.user
+        assert isinstance(user, User)
         season = self.get_object()
         self.check_season_active(season)
         participation = self.get_participation(season)
@@ -460,7 +476,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.save(season=season, from_user=participation.user, to_user=participation.santa.user)
         Event.objects.create(
             typ=Event.SANTA_MAILED,
-            sub=request.user,
+            sub=user,
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -473,7 +489,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     @method_decorator(cache_control(private=True))
-    def events(self, request, pk):
+    def events(self, request: Request, pk: str) -> Response:
         """
         Returns all events associated with this season,
         e.g. enrollments, sending or receiving gifts, etc.
@@ -486,7 +502,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True)
     @method_decorator(cache_control(public=True))
-    def countries(self, request, pk):
+    def countries(self, request: Request, pk: str) -> Response:
         """
         Shows country statistics for the given season.
         """
@@ -506,7 +522,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     @method_decorator(cache_control(private=True))
-    def happy_users(self, request, pk):
+    def happy_users(self, request: Request, pk: str) -> Response:
         """
         Returns all users who have received a gift in this season.
 
@@ -522,7 +538,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     @method_decorator(cache_control(private=True))
-    def naughty_kids(self, request, pk):
+    def naughty_kids(self, request: Request, pk: str) -> Response:
         """
         Returns all users who haven't sent a gift in this season.
 
@@ -538,7 +554,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     @method_decorator(cache_control(private=True))
-    def lost_gifts(self, request, pk):
+    def lost_gifts(self, request: Request, pk: str) -> Response:
         """
         Returns all lost gifts in this season.
 
@@ -554,39 +570,42 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
             shipped_at=F("gift_shipped_at"),
         ))
 
-    def check_season_active(self, season):
+    def check_season_active(self, season: Season) -> None:
         if season.is_closed:
             raise GenericAPIError("Этот сезон находится в архиве", "season_archived")
 
-    def get_participation(self, season):
+    def get_participation(self, season: Season) -> Participation:
+        user = self.request.user
+        assert isinstance(user, User)
         try:
-            return Participation.objects.select_related("santa", "giftee").get(user=self.request.user, season=season)
+            return Participation.objects.select_related("santa", "giftee").get(user=user, season=season)
         except Participation.DoesNotExist:
             raise GenericAPIError("Ой, а вы во всем этом и не участвуете", "not_participating")
 
 
-class MessageViewSet(viewsets.GenericViewSet):
+class MessageViewSet(viewsets.GenericViewSet[Message]):
     permission_classes=[IsAuthenticated]
     serializer_class = MessageSerializer
-    queryset = Season.objects.all()
 
     @action(
         detail=False,
         methods=["post"],
         serializer_class=MessageBulkSerializer,
     )
-    def mark_read(self, request):
+    def mark_read(self, request: Request) -> Response:
         """
         Marks the messages with the given IDs as read and returns the number of updated messages.
 
         On success, this number is equal to the number of given IDs.
         """
+        user = request.user
+        assert isinstance(user, User)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ids = serializer.validated_data["ids"]
         count = Message.objects.filter(
             id__in=ids,
-            to_user=request.user,
+            to_user=user,
             read_date__isnull=True,
             # read_date was introduced on this day, all messages before must stay NULL.
             send_date__gte=timezone.make_aware(datetime.datetime(2016, 12, 20))
@@ -594,7 +613,7 @@ class MessageViewSet(viewsets.GenericViewSet):
         return Response({ "updated": count })
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
     permission_classes=[IsAdminUser]
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -606,7 +625,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         serializer_class=TestNotificationSerializer,
     )
-    def send_notification(self, request, login):
+    def send_notification(self, request: Request, login: str) -> Response:
         """
         Sends a notification on Habr for this user, mostly for testing purposes.
 
@@ -623,7 +642,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         serializer_class=TestEMailSerializer,
     )
-    def send_email(self, request, login):
+    def send_email(self, request: Request, login: str) -> Response:
         """
         Sends an email to this user, mostly for testing purposes.
 
@@ -645,7 +664,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     @method_decorator(cache_control(private=True))
-    def events(self, request, login):
+    def events(self, request: Request, login: str) -> Response:
         """
         Returns all events caused by this user.
 
@@ -659,7 +678,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         detail=True,
         serializer_class=BanRecordSerializer,
     )
-    def ban_history(self, request, login):
+    def ban_history(self, request: Request, login: str) -> Response:
         """
         Shows the ban history.
 
@@ -674,7 +693,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         serializer_class=BanRecordSerializer,
     )
-    def ban(self, request, login):
+    def ban(self, request: Request, login: str) -> Response:
         """
         Bans the given user. The reason is not visible to the user, yet must always be provided.
 
@@ -684,19 +703,21 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         The user calling this method must be an admin.
         """
+        admin = request.user
+        assert isinstance(admin, User)
         user = self.get_object()
         if user.is_banned:
             raise GenericAPIError("Пользователь '{}' уже в бане".format(user.login))
-        if user == request.user:
+        if user == admin:
             raise GenericAPIError("Не стоит банить самого себя (потеряете доступ в админку!)")
         user.is_banned = True
         user.save()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=user, admin=request.user, is_banned=True)
+        serializer.save(user=user, admin=admin, is_banned=True)
         Event.objects.create(
             typ=Event.BANNED,
-            sub=request.user,
+            sub=admin,
             user=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -717,12 +738,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         methods=["post"],
         serializer_class=BanRecordSerializer,
     )
-    def unban(self, request, login):
+    def unban(self, request: Request, login: str) -> Response:
         """
         Unbans the given user. The reason is not visible to the user, yet must always be provided.
 
         The user calling this method must be an admin.
         """
+        admin = request.user
+        assert isinstance(admin, User)
         user = self.get_object()
         if not user.is_banned:
             raise GenericAPIError("Пользователь '{}' уже разбанен".format(user.login))
@@ -730,10 +753,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         user.save()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=user, admin=request.user, is_banned=False)
+        serializer.save(user=user, admin=admin, is_banned=False)
         Event.objects.create(
             typ=Event.UNBANNED,
-            sub=request.user,
+            sub=admin,
             user=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -751,7 +774,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
-    def allow_emails(self, request, login):
+    def allow_emails(self, request: Request, login: str) -> Response:
         """
         Allows sending emails to this user.
 
@@ -760,6 +783,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
         The user calling this method must be an admin.
         """
+        admin = request.user
+        assert isinstance(admin, User)
         user = self.get_object()
         if user.email_allowed:
             raise GenericAPIError("Пользователь '{}' уже подписан на email-уведомления".format(user.login))
@@ -767,7 +792,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         user.save()
         Event.objects.create(
             typ=Event.SUBSCRIBED,
-            sub=request.user,
+            sub=admin,
             user=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
@@ -780,12 +805,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer_class=MarkShippedSerializer,
         url_path="seasons/(?P<season_id>\\d+)/mark_shipped",
     )
-    def mark_shipped(self, request, login, season_id):
+    def mark_shipped(self, request: Request, login: str, season_id: str) -> Response:
         """
         Marks the gift as shipped in the given season.
 
         The user calling this method must be an admin.
         """
+        admin = request.user
+        assert isinstance(admin, User)
         user = self.get_object()
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
@@ -803,7 +830,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         participation.save()
         Event.objects.create(
             typ=Event.GIFT_SENT,
-            sub=request.user,
+            sub=admin,
             season=participation.season,
             obo=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
@@ -839,12 +866,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         serializer_class=MarkDeliveredSerializer,
         url_path="seasons/(?P<season_id>\\d+)/mark_delivered",
     )
-    def mark_delivered(self, request, login, season_id):
+    def mark_delivered(self, request: Request, login: str, season_id: str) -> Response:
         """
         Marks the gift as delivered in the given season.
 
         The user calling this method must be an admin.
         """
+        admin = request.user
+        assert isinstance(admin, User)
         user = self.get_object()
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
@@ -864,7 +893,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         participation.save()
         Event.objects.create(
             typ=Event.GIFT_RECEIVED,
-            sub=request.user,
+            sub=admin,
             season=participation.season,
             obo=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
@@ -900,7 +929,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class EventViewSet(viewsets.ReadOnlyModelViewSet):
+class EventViewSet(viewsets.ReadOnlyModelViewSet[Event]):
     permission_classes=[IsAdminUser]
     serializer_class = EventSerializer
     queryset = Event.objects.all()
@@ -912,7 +941,7 @@ class CountryViewSet(viewsets.ViewSet):
     authentication_classes = []
 
     @method_decorator(cache_control(public=True, max_age=60 * 60 * 24 * 30))
-    def list(self, request):
+    def list(self, request: Request) -> Response:
         """
         Lists all accepted countries.
         """
@@ -923,23 +952,25 @@ class CountryViewSet(viewsets.ViewSet):
 
 
 class InfoView(APIView):
-    def get(self, request, format=None):
+    def get(self, request: Request, format: str | None = None) -> Response:
+        user = request.user
         data = {
             "csrf_token": get_token(request),
-            "is_authenticated": request.user.is_authenticated,
+            "is_authenticated": user.is_authenticated,
             "is_active": False,
             "can_participate": False,
             "is_debug": settings.DEBUG,
         }
-        if request.user.is_authenticated:
+        if user.is_authenticated:
+            assert isinstance(user, User)
             try:
-                data["username"] = request.user.login
-                data["avatar_url"] = request.user.avatar_url
-                data["karma"] = request.user.karma
-                data["is_readonly"] = request.user.is_readonly
-                data["has_badge"] = request.user.has_badge
-                data["is_active"] = not request.user.is_banned
-                data["can_participate"] = request.user.can_participate
+                data["username"] = user.login
+                data["avatar_url"] = user.avatar_url
+                data["karma"] = user.karma
+                data["is_readonly"] = user.is_readonly
+                data["has_badge"] = user.has_badge
+                data["is_active"] = not user.is_banned
+                data["can_participate"] = user.can_participate
             except requests.exceptions.Timeout as e:
                 return Response({ "error": str(e) }, status=504)
             except HabrIsDownException as e:
@@ -948,13 +979,13 @@ class InfoView(APIView):
 
 
 class LoginView(View):
-    def get(self, request):
-        next = request.GET.get("next")
-        if not url_has_allowed_host_and_scheme(next, None):
-            next = "/"
+    def get(self, request: HttpRequest) -> HttpResponse:
+        next_url = request.GET.get("next")
+        if not next_url or not url_has_allowed_host_and_scheme(next_url, None):
+            next_url = "/"
         if request.user.is_authenticated:
-            return HttpResponseRedirect(next)
-        redirect_uri = reverse("callback") + "?" + urlencode({ "next": next }) # TODO: move to state
+            return HttpResponseRedirect(next_url)
+        redirect_uri = reverse("callback") + "?" + urlencode({ "next": next_url }) # TODO: move to state
         if settings.DEBUG:
             authorize_url = reverse("fake_authorize")
         else:
@@ -969,14 +1000,14 @@ class LoginView(View):
 
 
 class CallbackView(View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         # TODO: check state
-        next = request.GET.get("next")
-        if not url_has_allowed_host_and_scheme(next, None):
-            next = "/"
+        next_url = request.GET.get("next")
+        if not next_url or not url_has_allowed_host_and_scheme(next_url, None):
+            next_url = "/"
         if request.user.is_authenticated:
             # A lot of our users try to press the Back button immediately after login.
-            return HttpResponseRedirect(next)
+            return HttpResponseRedirect(next_url)
         code = request.GET.get("code")
         if not code:
             return render(request, "habrasanta/auth_error.html", status=500)
@@ -984,36 +1015,36 @@ class CallbackView(View):
         if not user:
             return render(request, "habrasanta/auth_error.html", status=500)
         login(request, user)
-        return HttpResponseRedirect(next)
+        return HttpResponseRedirect(next_url)
 
 
 class LogoutView(View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         # TODO: check CSRF token
         logout(request)
-        next = request.GET.get("next")
-        if not url_has_allowed_host_and_scheme(next, None):
-            next = "/"
-        return HttpResponseRedirect(next)
+        next_url = request.GET.get("next")
+        if not next_url or not url_has_allowed_host_and_scheme(next_url, None):
+            next_url = "/"
+        return HttpResponseRedirect(next_url)
 
 
 class FakeAuthorizeView(View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         return render(request, "habrasanta/fake_authorize.html", {
             "redirect_uri": request.GET.get("redirect_uri"),
             "state": request.GET.get("state"),
         })
 
-    def post(self, request):
-        url = urlparse(request.POST.get("redirect_uri"))
+    def post(self, request: HttpRequest) -> HttpResponse:
+        url = urlparse(request.POST.get("redirect_uri") or "")
         return HttpResponseRedirect(url.path + "?" + urlencode({
-            "code": request.POST.get("username"),
-            "state": request.POST.get("state"),
+            "code": request.POST.get("username") or "",
+            "state": request.POST.get("state") or "",
         }) + "&" + url.query)
 
 
 class IndexView(View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         try:
             season = Season.objects.latest()
         except Season.DoesNotExist:
@@ -1024,12 +1055,14 @@ class IndexView(View):
 
 
 class FrontendView(View):
-    def get(self, request, year):
+    def get(self, request: HttpRequest, year: int) -> HttpResponse:
         now = timezone.now()
-        if not request.user.is_anonymous and (
-                not request.user.last_online or request.user.last_online < now - datetime.timedelta(minutes=15)):
-            request.user.last_online = now
-            request.user.save()
+        user = request.user
+        if not user.is_anonymous:
+            assert isinstance(user, User)
+            if not user.last_online or user.last_online < now - datetime.timedelta(minutes=15):
+                user.last_online = now
+                user.save()
         season = get_object_or_404(Season, id=year)
         return render(request, "habrasanta/frontend.html", {
             "season": SeasonSerializer(season).data,
@@ -1037,7 +1070,7 @@ class FrontendView(View):
 
 
 @csrf_exempt # already validated by email_token
-def unsubscribe(request):
+def unsubscribe(request: HttpRequest) -> HttpResponse:
     if not "uid" in request.GET:
         return render(request, "habrasanta/unsubscribed.html", {
             "error": "отсутствует ID пользователя",
@@ -1075,5 +1108,5 @@ def unsubscribe(request):
 
 
 class HealthView(View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         return HttpResponse("okay", content_type="text/plain")

@@ -1,6 +1,7 @@
 import random
 
 from django.core.management.base import BaseCommand
+from typing import Any
 
 from habrasanta.celery import send_email, send_notification
 from habrasanta.models import Season, Participation
@@ -28,7 +29,7 @@ PS = "P.S. Если возникли какие-то проблемы с отп�
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         season = Season.objects.latest()
         assert not season.is_closed
         for participant in Participation.objects.filter(season=season, gift_shipped_at=None):

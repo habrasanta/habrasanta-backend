@@ -5,17 +5,18 @@ from django.utils import timezone
 from django.db.models import Count, F
 from django.db.models.functions import Coalesce
 from functools import reduce
+from typing import Any
 
 from habrasanta.celery import send_email, send_notification
 from habrasanta.models import Season, Message, User, Participation
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
+    def handle(self, *args: Any, **options: Any) -> None:
         self.match_season()
         self.send_chat_notifications()
 
-    def match_season(self, *args, **options):
+    def match_season(self, *args: Any, **options: Any) -> None:
         """
         Match addresses in an unmatched season with closed registration.
         """
@@ -72,7 +73,7 @@ class Command(BaseCommand):
             season.save()
             self.stdout.write(self.style.SUCCESS("Season {} matched!".format(season.id)))
 
-    def send_chat_notifications(self, *args, **options):
+    def send_chat_notifications(self, *args: Any, **options: Any) -> None:
         """
         Find unread chat messages the users are not yet aware of and send out notifications.
         """
@@ -109,7 +110,7 @@ class Command(BaseCommand):
             else:
                 print("Nobody has received new messages yet")
 
-    def russian_plural(self, n, one, few, many):
+    def russian_plural(self, n: int, one: str, few: str, many: str) -> str:
         if n % 10 == 1 and n % 100 != 11:
             return one
         if n % 10 >= 2 and n % 10 <= 4 and (n % 100 < 10 or n % 100 >= 20):

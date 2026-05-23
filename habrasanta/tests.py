@@ -4,15 +4,23 @@ from datetime import timedelta
 from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
-from rest_framework.test import APIClient
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient as OriginalAPIClient
+from typing import Any, cast
 
 from habrasanta.models import Message, Participation, Season, User
 
 
+class APIClient(OriginalAPIClient):
+    def force_authenticate(self, user: Any = None, token: Token | None = None) -> None:
+        super().force_authenticate(user)
+
+
 class UserTestCase(TestCase):
-    def test_profile(self):
+    def test_profile(self) -> None:
         u = User()
         u._profile = {
+            "login": "whatever",
             "karma": 42,
             "has_badge": False,
             "is_readonly": False,
@@ -23,6 +31,7 @@ class UserTestCase(TestCase):
         self.assertFalse(u.is_readonly)
         self.assertEqual(u.avatar_url, "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif")
         u._profile = {
+            "login": "whatever",
             "karma": 0,
             "has_badge": True,
             "is_readonly": True,
@@ -33,7 +42,7 @@ class UserTestCase(TestCase):
         self.assertTrue(u.is_readonly)
         self.assertEqual(u.avatar_url, "//habrastorage.org/getpro/habr/avatars/7bf/80e/da6/7bf80eda638211ca4a38ed48b4058c2d.png")
 
-    def test_django_getters(self):
+    def test_django_getters(self) -> None:
         u = User(login="kafeman")
         self.assertTrue(u.is_active)
         self.assertTrue(u.is_staff)
@@ -41,27 +50,27 @@ class UserTestCase(TestCase):
         self.assertTrue(u.is_authenticated)
         self.assertEqual(u.get_username(), "kafeman")
 
-    def test_can_participate(self):
+    def test_can_participate(self) -> None:
         u = User()
-        u._profile = { "karma": 0, "has_badge": False, "is_readonly": False }
+        u._profile = { "login": "whatever", "karma": 0, "has_badge": False, "is_readonly": False, "avatar_url": None }
         self.assertFalse(u.can_participate)
-        u._profile = { "karma": 0, "has_badge": True, "is_readonly": False }
+        u._profile = { "login": "whatever", "karma": 0, "has_badge": True, "is_readonly": False, "avatar_url": None }
         self.assertTrue(u.can_participate)
-        u._profile = { "karma": 100, "has_badge": False, "is_readonly": False }
+        u._profile = { "login": "whatever", "karma": 100, "has_badge": False, "is_readonly": False, "avatar_url": None }
         self.assertTrue(u.can_participate)
-        u._profile = { "karma": 100, "has_badge": True, "is_readonly": True }
+        u._profile = { "login": "whatever", "karma": 100, "has_badge": True, "is_readonly": True, "avatar_url": None }
         self.assertFalse(u.can_participate)
-        u._profile = { "karma": 100, "has_badge": True, "is_readonly": False }
+        u._profile = { "login": "whatever", "karma": 100, "has_badge": True, "is_readonly": False, "avatar_url": None }
         u.is_banned = True
         self.assertFalse(u.can_participate)
 
 
 class SeasonTestCase(TestCase):
-    def test_str(self):
+    def test_str(self) -> None:
         s = Season(id=1970)
         self.assertEqual(str(s), "АДМ 1970")
 
-    def test_is_registration_open(self):
+    def test_is_registration_open(self) -> None:
         s = Season(registration_open=timezone.now() + timedelta(hours=1))
         self.assertFalse(s.is_registration_open)
         s.registration_open = timezone.now() - timedelta(hours=2)
@@ -70,20 +79,20 @@ class SeasonTestCase(TestCase):
         s.registration_close = timezone.now() + timedelta(hours=1)
         self.assertTrue(s.is_registration_open)
 
-    def test_is_closed(self):
+    def test_is_closed(self) -> None:
         s = Season(season_close=timezone.now() + timedelta(hours=1))
         self.assertFalse(s.is_closed)
         s.season_close = timezone.now() - timedelta(hours=1)
         self.assertTrue(s.is_closed)
 
-    def test_is_matched(self):
+    def test_is_matched(self) -> None:
         s = Season()
         self.assertFalse(s.is_matched)
         s.address_match = timezone.now()
         self.assertTrue(s.is_matched)
 
 class SeasonViewSetTestCase(TestCase):
-    def test_list(self):
+    def test_list(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons")
         self.assertEqual(response.status_code, 200)
@@ -110,7 +119,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["results"][0]["is_matched"], False)
         self.assertEqual(obj["results"][0]["gallery_url"], "")
 
-    def test_create(self):
+    def test_create(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons")
         self.assertEqual(response.status_code, 403)
@@ -154,7 +163,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["is_matched"], False)
         self.assertEqual(obj["gallery_url"], "")
 
-    def test_retrieve(self):
+    def test_retrieve(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007")
         self.assertEqual(response.status_code, 404)
@@ -180,7 +189,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["is_matched"], False)
         self.assertEqual(obj["gallery_url"], "")
 
-    def test_events(self):
+    def test_events(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007/events")
         self.assertEqual(response.status_code, 403)
@@ -198,7 +207,7 @@ class SeasonViewSetTestCase(TestCase):
         # TODO: We're not really interested in this method now,
         # just make sure only admins may access it...
 
-    def test_giftee_chat(self):
+    def test_giftee_chat(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007/giftee_chat")
         self.assertEqual(response.status_code, 403)
@@ -267,7 +276,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(array[1]["text"], "Goodbye Cruel World")
         self.assertFalse(array[1]["is_author"])
 
-    def test_post_giftee_chat(self):
+    def test_post_giftee_chat(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons/2007/giftee_chat")
         self.assertEqual(response.status_code, 403)
@@ -335,7 +344,7 @@ class SeasonViewSetTestCase(TestCase):
         msg = Message.objects.get(from_user=participation.user, to_user=giftee.user)
         self.assertEqual(msg.text, "Hello World")
 
-    def test_santa_chat(self):
+    def test_santa_chat(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 403)
@@ -403,7 +412,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(array[1]["text"], "Goodbye Cruel World")
         self.assertFalse(array[1]["is_author"])
 
-    def test_post_santa_chat(self):
+    def test_post_santa_chat(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 403)
@@ -470,7 +479,7 @@ class SeasonViewSetTestCase(TestCase):
         msg = Message.objects.get(from_user=participation.user, to_user=santa.user)
         self.assertEqual(msg.text, "Hello World")
 
-    def test_mark_delivered(self):
+    def test_mark_delivered(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 403)
@@ -544,7 +553,7 @@ class SeasonViewSetTestCase(TestCase):
             "Вами уже был получен один подарок"
         )
 
-    def test_mark_shipped(self):
+    def test_mark_shipped(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 403)
@@ -611,7 +620,7 @@ class SeasonViewSetTestCase(TestCase):
             "Вами уже был отправлен один подарок"
         )
 
-    def test_participation(self):
+    def test_participation(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 403)
@@ -659,7 +668,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertIsNone(obj["giftee"])
         self.assertIsNone(obj["santa"])
 
-    def test_create_participation(self):
+    def test_create_participation(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 403)
@@ -752,7 +761,7 @@ class SeasonViewSetTestCase(TestCase):
             "Вы уже зарегистрированы на этот сезон"
         )
 
-    def test_cancel_participation(self):
+    def test_cancel_participation(self) -> None:
         client = APIClient()
         response = client.delete("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 403)
@@ -810,7 +819,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["season"]["member_count"], 0)
         self.assertIsNone(obj["participation"])
 
-    def test_latest(self):
+    def test_latest(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/latest")
         self.assertEqual(response.status_code, 404)
@@ -835,7 +844,7 @@ class SeasonViewSetTestCase(TestCase):
         obj = json.loads(response.content)
         self.assertEqual(obj["id"], 2007)
 
-    def test_countries(self):
+    def test_countries(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/seasons/2007/countries")
         self.assertEqual(response.status_code, 404)
@@ -854,7 +863,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.content, b"{}")
         # TODO: add more tests...
 
-    def test_kick_participant(self):
+    def test_kick_participant(self) -> None:
         client = APIClient()
         response = client.delete("/api/v1/seasons/2007/participants/negasus")
         self.assertEqual(response.status_code, 403)
@@ -916,7 +925,7 @@ class SeasonViewSetTestCase(TestCase):
 
 
 class UserViewSetTestCase(TestCase):
-    def test_list(self):
+    def test_list(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/users")
         self.assertEqual(response.status_code, 403)
@@ -935,7 +944,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_retrieve(self):
+    def test_retrieve(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/users/exploitable")
         self.assertEqual(response.status_code, 403)
@@ -954,7 +963,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_ban(self):
+    def test_ban(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/negasus/ban")
         self.assertEqual(response.status_code, 403)
@@ -1003,7 +1012,7 @@ class UserViewSetTestCase(TestCase):
             "Пользователь 'negasus' уже в бане"
         )
 
-    def test_unban(self):
+    def test_unban(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/negasus/unban")
         self.assertEqual(response.status_code, 403)
@@ -1049,7 +1058,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(obj["reason"], "sorry, that was enough fun")
         self.assertFalse(obj["is_banned"])
 
-    def test_ban_history(self):
+    def test_ban_history(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/users/exploitable/ban_history")
         self.assertEqual(response.status_code, 403)
@@ -1068,7 +1077,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_events(self):
+    def test_events(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/users/exploitable/events")
         self.assertEqual(response.status_code, 403)
@@ -1087,7 +1096,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_send_email(self):
+    def test_send_email(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/exploitable/send_email")
         self.assertEqual(response.status_code, 403)
@@ -1106,7 +1115,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_notification(self):
+    def test_notification(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/exploitable/send_notification")
         self.assertEqual(response.status_code, 403)
@@ -1125,7 +1134,7 @@ class UserViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_allow_emails(self):
+    def test_allow_emails(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/negasus/allow_emails")
         self.assertEqual(response.status_code, 403)
@@ -1170,7 +1179,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(obj["login"], "negasus")
         self.assertTrue(obj["email_allowed"])
 
-    def test_mark_shipped(self):
+    def test_mark_shipped(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 403)
@@ -1232,7 +1241,7 @@ class UserViewSetTestCase(TestCase):
             "Этот пользователь уже отправил подарок"
         )
 
-    def test_mark_delivered(self):
+    def test_mark_delivered(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 403)
@@ -1305,7 +1314,7 @@ class UserViewSetTestCase(TestCase):
 
 
 class CountryViewSetTestCase(TestCase):
-    def test_list(self):
+    def test_list(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/countries")
         self.assertEqual(response.status_code, 200)
@@ -1315,7 +1324,7 @@ class CountryViewSetTestCase(TestCase):
 
 
 class EventViewSetTestCase(TestCase):
-    def test_list(self):
+    def test_list(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/events")
         self.assertEqual(response.status_code, 403)
@@ -1334,7 +1343,7 @@ class EventViewSetTestCase(TestCase):
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
 
-    def test_retrieve(self):
+    def test_retrieve(self) -> None:
         client = APIClient()
         response = client.get("/api/v1/events/1")
         self.assertEqual(response.status_code, 403)
@@ -1355,7 +1364,7 @@ class EventViewSetTestCase(TestCase):
 
 
 class BackendViewTestCase(TestCase):
-    def test_get(self):
+    def test_get(self) -> None:
         client = APIClient()
         response = client.get("/backend/info")
         self.assertEqual(response.status_code, 200)
@@ -1386,7 +1395,7 @@ class BackendViewTestCase(TestCase):
 
 
 class MessageViewSetTestCase(TestCase):
-    def test_mark_read(self):
+    def test_mark_read(self) -> None:
         client = APIClient()
         response = client.post("/api/v1/messages/mark_read")
         self.assertEqual(response.status_code, 403)

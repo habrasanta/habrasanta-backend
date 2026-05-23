@@ -1,10 +1,11 @@
 from django.conf import settings
+from django.http import HttpRequest
 
 from habrasanta.celery import send_email
-from habrasanta.models import Event
+from habrasanta.models import Event, User
 
 
-def log_user_login(sender, user, request, **kwargs):
+def log_user_login(sender: type, user: User | None, request: HttpRequest, **kwargs: object) -> None:
     if not user:
         return
     if user.is_staff and not settings.DEBUG:
@@ -24,7 +25,7 @@ def log_user_login(sender, user, request, **kwargs):
     )
 
 
-def log_user_logout(sender, user, request, **kwargs):
+def log_user_logout(sender: type, user: User | None, request: HttpRequest, **kwargs: object) -> None:
     if not user:
         return
     Event.objects.create(

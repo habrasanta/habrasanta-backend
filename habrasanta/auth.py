@@ -1,8 +1,16 @@
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
+from django.http import HttpRequest
+from typing import Any, TypedDict, cast
 
 from habrasanta.models import User
 from habrasanta.utils import fetch_habr_profile, session
+
+
+class UserInfo(TypedDict, total=False):
+    id: str | int
+    alias: str
+    email: str | None
 
 
 class PublicHabrBackend(ModelBackend):
@@ -11,7 +19,14 @@ class PublicHabrBackend(ModelBackend):
 
     This backend authenticates users using the Habr's semi-public API.
     """
-    def authenticate(self, request, authorization_code=None):
+    def authenticate(
+        self,
+        request: HttpRequest | None,
+        username: str | None = None,
+        password: str | None = None,
+        authorization_code: str | None = None,
+        **kwargs: Any,
+    ) -> User | None:
         response = session.post(settings.HABR_TOKEN_URL, data={
             "grant_type": "authorization_code",
             "code": authorization_code,
@@ -45,7 +60,7 @@ class PublicHabrBackend(ModelBackend):
         user.save()
         return user
 
-    def fetch_profile(self, access_token):
+    def fetch_profile(self, access_token: str | None) -> UserInfo | None:
         if not access_token:
             return None
         response = session.get(settings.HABR_USER_INFO_URL, headers={
@@ -54,7 +69,7 @@ class PublicHabrBackend(ModelBackend):
         })
         if response.status_code != 200:
             return None
-        return response.json()
+        return cast(UserInfo, response.json())
 
 
 class FakeBackend(ModelBackend):
@@ -62,7 +77,14 @@ class FakeBackend(ModelBackend):
     This backend skips the authorization step during development, yet real Habr
     profiles are still used (make sure the environment variable HABR_APIKEY is set).
     """
-    def authenticate(self, request, authorization_code=None):
+    def authenticate(
+        self,
+        request: HttpRequest | None,
+        username: str | None = None,
+        password: str | None = None,
+        authorization_code: str | None = None,
+        **kwargs: Any,
+    ) -> User | None:
         if not authorization_code:
             return None
         # Username is passed instead of the real authorization code.

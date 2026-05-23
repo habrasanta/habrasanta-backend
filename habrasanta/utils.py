@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+from typing import TypedDict
 
 
 logger = logging.getLogger(__name__)
@@ -25,12 +26,20 @@ session.mount("https://habr.com/", HTTPAdapter(max_retries=retries))
 
 
 class HabrIsDownException(Exception):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Habr is offline")
 
 
-def fetch_habr_profile(username):
-    profile = cache.get("profile:" + username)
+class HabrProfile(TypedDict):
+    login: str
+    avatar_url: str | None
+    karma: float
+    has_badge: bool
+    is_readonly: bool
+
+
+def fetch_habr_profile(username: str) -> HabrProfile | None:
+    profile: HabrProfile | None = cache.get("profile:" + username)
     if not profile:
         start = time.time()
         response = session.get("https://habr.com/api/v2/users/{}/card".format(username), headers={
@@ -43,7 +52,7 @@ def fetch_habr_profile(username):
             boomburum = User.objects.get(login="Boomburum")
             send_notification.delay(
                 boomburum.id,
-                "Пользователя '{}' больше нет с нами.".format(user.login)
+                "Пользователя '{}' больше нет с нами.".format(username)
             )
             return None
         if response.status_code == 502:

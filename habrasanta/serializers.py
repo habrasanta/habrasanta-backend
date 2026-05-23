@@ -5,7 +5,7 @@ from rest_framework import serializers
 from habrasanta.models import BanRecord, Event, Message, Participation, Season, User
 
 
-class SeasonSerializer(serializers.ModelSerializer):
+class SeasonSerializer(serializers.ModelSerializer[Season]):
     class Meta:
         model = Season
         fields = [
@@ -23,7 +23,7 @@ class SeasonSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer[User]):
     class Meta:
         model = User
         fields = ["id", "login", "is_staff", "is_active", "can_participate", "email_allowed", "last_online"]
@@ -32,32 +32,32 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
 
-class MessageSerializer(serializers.ModelSerializer):
+class MessageSerializer(serializers.ModelSerializer[Message]):
     is_author = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
         fields = ["id", "text", "send_date", "read_date", "is_author"]
 
-    def get_is_author(self, message) -> bool:
-        return message.from_user == self.context["request"].user
+    def get_is_author(self, message: Message) -> bool:
+        return bool(message.from_user == self.context["request"].user)
 
 
-class SantaSerializer(serializers.ModelSerializer):
+class SantaSerializer(serializers.ModelSerializer[Participation]):
     class Meta:
         model = Participation
         fields = ["gift_shipped_at"]
         read_only_fields = fields
 
 
-class GifteeSerializer(CountryFieldMixin, serializers.ModelSerializer):
+class GifteeSerializer(CountryFieldMixin, serializers.ModelSerializer[Participation]):
     class Meta:
         model = Participation
         fields = ["fullname", "postcode", "address", "country", "gift_delivered_at"]
         read_only_fields = fields
 
 
-class ParticipationSerializer(CountryFieldMixin, serializers.ModelSerializer):
+class ParticipationSerializer(CountryFieldMixin, serializers.ModelSerializer[Participation]):
     santa = SantaSerializer(read_only=True)
     giftee = GifteeSerializer(read_only=True)
 
@@ -71,47 +71,47 @@ class ParticipationSerializer(CountryFieldMixin, serializers.ModelSerializer):
         }
 
 
-class UserInfoSerializer(serializers.ModelSerializer):
+class UserInfoSerializer(serializers.ModelSerializer[User]):
     class Meta:
         model = User
         fields = ["username", "email", "avatar_url", "is_stuff"]
 
 
-class MessageBulkSerializer(serializers.Serializer):
+class MessageBulkSerializer(serializers.Serializer[object]):
     ids = serializers.ListField(child = serializers.IntegerField(min_value=0))
 
 
-class TestNotificationSerializer(serializers.Serializer):
+class TestNotificationSerializer(serializers.Serializer[object]):
     text = serializers.CharField()
 
 
-class TestEMailSerializer(serializers.Serializer):
+class TestEMailSerializer(serializers.Serializer[object]):
     subject = serializers.CharField()
     body = serializers.CharField()
 
 
-class EventSerializer(serializers.ModelSerializer):
+class EventSerializer(serializers.ModelSerializer[Event]):
     class Meta:
         model = Event
         fields = ["time", "typ", "sub", "obo", "user", "season", "ip_address"]
         read_only_fields = fields
 
 
-class AsyncResultSerializer(serializers.Serializer):
+class AsyncResultSerializer(serializers.Serializer[object]):
     id = serializers.UUIDField(read_only=True)
     date_done = serializers.DateTimeField(read_only=True)
     state = serializers.CharField(read_only=True)
 
 
-class BanRecordSerializer(serializers.ModelSerializer):
+class BanRecordSerializer(serializers.ModelSerializer[BanRecord]):
     class Meta:
         model = BanRecord
         fields = ["admin", "reason", "is_banned", "date"]
 
 
-class MarkShippedSerializer(serializers.Serializer):
+class MarkShippedSerializer(serializers.Serializer[object]):
     gift_shipped_at = serializers.DateTimeField(default=timezone.now)
 
 
-class MarkDeliveredSerializer(serializers.Serializer):
+class MarkDeliveredSerializer(serializers.Serializer[object]):
     gift_delivered_at = serializers.DateTimeField(default=timezone.now)

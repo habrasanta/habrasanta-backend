@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import logging
 import os
 
-from celery import Celery
+from celery import Celery, Task
 from celery.exceptions import Reject
 from django.conf import settings
 from django.core.mail import EmailMessage
+from typing import Any
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "habrasanta.settings")
@@ -15,8 +18,8 @@ app = Celery("habrasanta")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
 
-@app.task
-def send_notification(user_id, message):
+@app.task(bind=True)
+def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
     from habrasanta.models import User
     from habrasanta.utils import session
     user = User.objects.get(pk=user_id)
@@ -43,7 +46,7 @@ def send_notification(user_id, message):
 
 
 @app.task(bind=True)
-def send_email(self, user_id, subject, body):
+def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> int:
     from habrasanta.models import User
     user = User.objects.get(pk=user_id)
     if not user.email:
@@ -86,7 +89,7 @@ def send_email(self, user_id, subject, body):
 
 
 @app.task(bind=True)
-def give_badge(self, user_id):
+def give_badge(self: Task[Any, Any], user_id: int) -> None:
     from habrasanta.models import User
     from habrasanta.utils import session
     user = User.objects.get(pk=user_id)

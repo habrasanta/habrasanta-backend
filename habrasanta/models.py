@@ -7,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 from functools import partial
 
-from habrasanta.utils import fetch_habr_profile
+from habrasanta.utils import HabrProfile, fetch_habr_profile
 
 
 class User(models.Model):
@@ -38,32 +38,32 @@ class User(models.Model):
             ("view_user_email", "Может просматривать e-mail адрес пользователя"),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.login
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:
         return True
 
     @property
-    def is_staff(self):
+    def is_staff(self) -> bool:
         return self.login in settings.HABRASANTA_ADMINS
 
     @property
-    def is_anonymous(self):
+    def is_anonymous(self) -> bool:
         return False
 
     @property
-    def is_authenticated(self):
+    def is_authenticated(self) -> bool:
         return True
 
-    def has_module_perms(self, package_name):
+    def has_module_perms(self, package_name: str) -> bool:
         # Hide default auth app from Django admin.
         if package_name == "auth":
             return False
         return self.is_staff
 
-    def has_perm(self, perm, obj=None):
+    def has_perm(self, perm: str, obj: models.Model | None = None) -> bool:
         # No one can change events.
         if perm == "habrasanta.change_event":
             return False
@@ -92,7 +92,9 @@ class User(models.Model):
             if isinstance(obj, User):
                 # FIXME: how is it possible?
                 return obj == self
-            return obj.user == self
+            if isinstance(obj, Participation):
+                return obj.user == self
+            return False
         # Only kafeman and the user itself can access email addresses.
         if perm == "habrasanta.view_user_email":
             return self.login == "kafeman" or obj == self
@@ -104,36 +106,37 @@ class User(models.Model):
             return False
         return self.is_staff
 
-    def get_username(self):
+    def get_username(self) -> str:
         return self.login
 
     @property
-    def profile(self):
+    def profile(self) -> HabrProfile:
         if not hasattr(self, "_profile"):
             self._profile = fetch_habr_profile(self.login)
+        assert self._profile
         return self._profile
 
     @property
-    def karma(self):
+    def karma(self) -> float:
         return self.profile["karma"]
 
     @property
-    def avatar_url(self):
+    def avatar_url(self) -> str:
         url = self.profile["avatar_url"]
         if not url:
             return "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif"
         return url
 
     @property
-    def is_readonly(self):
+    def is_readonly(self) -> bool:
         return self.profile["is_readonly"]
 
     @property
-    def has_badge(self):
+    def has_badge(self) -> bool:
         return self.profile["has_badge"]
 
     @property
-    def can_participate(self):
+    def can_participate(self) -> bool:
         return not self.is_banned and not self.is_readonly and (
             self.karma >= settings.HABRASANTA_KARMA_LIMIT or self.has_badge)
 
@@ -160,7 +163,7 @@ class Season(models.Model):
         verbose_name = "сезон"
         verbose_name_plural = "сезоны"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "АДМ {}".format(self.id)
 
     @property
@@ -178,7 +181,7 @@ class Season(models.Model):
     def is_matched(self) -> bool:
         return self.address_match is not None
 
-    def clean(self):
+    def clean(self) -> None:
         error_dict = {}
         if self.registration_close < self.registration_open:
             error_dict["registration_close"] = "Регистрация не может закрыться до открытия"
@@ -216,7 +219,7 @@ class Participation(models.Model):
             ("view_participation_address", "Может видеть почтовый адрес участника"),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{} @ {}".format(self.user, self.season)
 
 
