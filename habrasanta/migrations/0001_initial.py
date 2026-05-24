@@ -110,6 +110,58 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name="Season",
+            fields=[
+                (
+                    "id",
+                    models.PositiveIntegerField(
+                        primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "registration_open",
+                    models.DateTimeField(verbose_name="открытие регистрации"),
+                ),
+                (
+                    "registration_close",
+                    models.DateTimeField(verbose_name="закрытие регистрации"),
+                ),
+                (
+                    "address_match",
+                    models.DateTimeField(
+                        editable=False,
+                        help_text="Устанавливается скриптом жеребьевки автоматически",
+                        null=True,
+                        verbose_name="жеребьевка адресов",
+                    ),
+                ),
+                ("season_close", models.DateTimeField(verbose_name="закрытие сезона")),
+                (
+                    "member_count",
+                    models.PositiveIntegerField(default=0, editable=False),
+                ),
+                (
+                    "shipped_count",
+                    models.PositiveIntegerField(default=0, editable=False),
+                ),
+                (
+                    "delivered_count",
+                    models.PositiveIntegerField(default=0, editable=False),
+                ),
+                (
+                    "gallery_url",
+                    models.URLField(
+                        blank=True, verbose_name="пост хвастовства подарками"
+                    ),
+                ),
+            ],
+            options={
+                "verbose_name": "сезон",
+                "verbose_name_plural": "сезоны",
+                "get_latest_by": "id",
+            },
+        ),
+        migrations.CreateModel(
             name="Participation",
             fields=[
                 (
@@ -163,6 +215,22 @@ class Migration(migrations.Migration):
                         verbose_name="получатель подарка",
                     ),
                 ),
+                (
+                    "season",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="habrasanta.season",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
                 "permissions": [
@@ -172,84 +240,6 @@ class Migration(migrations.Migration):
                     )
                 ],
             },
-        ),
-        migrations.CreateModel(
-            name="Season",
-            fields=[
-                (
-                    "id",
-                    models.PositiveIntegerField(
-                        primary_key=True, serialize=False, verbose_name="ID"
-                    ),
-                ),
-                (
-                    "registration_open",
-                    models.DateTimeField(verbose_name="открытие регистрации"),
-                ),
-                (
-                    "registration_close",
-                    models.DateTimeField(verbose_name="закрытие регистрации"),
-                ),
-                (
-                    "address_match",
-                    models.DateTimeField(
-                        editable=False,
-                        help_text="Устанавливается скриптом жеребьевки автоматически",
-                        null=True,
-                        verbose_name="жеребьевка адресов",
-                    ),
-                ),
-                ("season_close", models.DateTimeField(verbose_name="закрытие сезона")),
-                (
-                    "member_count",
-                    models.PositiveIntegerField(default=0, editable=False),
-                ),
-                (
-                    "shipped_count",
-                    models.PositiveIntegerField(default=0, editable=False),
-                ),
-                (
-                    "delivered_count",
-                    models.PositiveIntegerField(default=0, editable=False),
-                ),
-                (
-                    "gallery_url",
-                    models.URLField(
-                        blank=True, verbose_name="пост хвастовства подарками"
-                    ),
-                ),
-                (
-                    "users",
-                    models.ManyToManyField(
-                        related_name="seasons",
-                        through="habrasanta.Participation",
-                        to=settings.AUTH_USER_MODEL,
-                    ),
-                ),
-            ],
-            options={
-                "verbose_name": "сезон",
-                "verbose_name_plural": "сезоны",
-                "get_latest_by": "id",
-            },
-        ),
-        migrations.AddField(
-            model_name="participation",
-            name="season",
-            field=models.ForeignKey(
-                editable=False,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="habrasanta.season",
-            ),
-        ),
-        migrations.AddField(
-            model_name="participation",
-            name="user",
-            field=models.ForeignKey(
-                editable=False,
-                on_delete=django.db.models.deletion.CASCADE,
-                to=settings.AUTH_USER_MODEL,
-            ),
         ),
         migrations.CreateModel(
             name="Message",

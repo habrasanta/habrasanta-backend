@@ -180,8 +180,6 @@ class Season(models.Model):
 
     gallery_url = models.URLField("пост хвастовства подарками", blank=True)
 
-    # users = models.ManyToManyField(User, related_name="seasons", through="Participation")
-
     class Meta:
         get_latest_by = "id"
         verbose_name = "сезон"
@@ -223,6 +221,7 @@ class Participation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, editable=False)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, editable=False)
     # FIXME: Link to User? Otherwise, a cross-season match is technically possible.
+    # Unfortunately not supported by Django ORM even in Django 6.0 :-(
     giftee = models.OneToOneField(
         "self",
         related_name="santa",
