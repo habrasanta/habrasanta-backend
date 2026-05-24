@@ -55,10 +55,7 @@ class Command(BaseCommand):
                     continue  # Nothing to do.
                 last = len(participants) - 1
                 for i, participant in enumerate(participants):
-                    if i == last:
-                        giftee = participants[0]
-                    else:
-                        giftee = participants[i + 1]
+                    giftee = participants[0] if i == last else participants[i + 1]
                     # Make sure the user isn't matched to themself (happened once...)
                     assert giftee != participant
                     # TODO: Make sure the users weren't matched in another season before.
