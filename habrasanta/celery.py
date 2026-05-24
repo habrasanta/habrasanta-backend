@@ -39,7 +39,7 @@ def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
         )
     except Exception as e:
         # Happens on timeout, DNS errors, etc.
-        raise self.retry(countdown=60 * 5, exc=e)
+        raise self.retry(countdown=60 * 5, exc=e) from None
     if response.status_code == 401:
         # Happens when the user revoked access to their account.
         raise Reject(
@@ -51,7 +51,7 @@ def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
         response.raise_for_status()
     except Exception as e:
         # Happens when the connection was successful, but Habr failed.
-        raise self.retry(countdown=60 * 5, exc=e)
+        raise self.retry(countdown=60 * 5, exc=e) from None
 
 
 @app.task(bind=True)
@@ -97,7 +97,7 @@ def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> i
     try:
         return email.send(fail_silently=False)
     except Exception as e:
-        raise self.retry(countdown=60 * 5, exc=e)
+        raise self.retry(countdown=60 * 5, exc=e) from None
 
 
 @app.task(bind=True)
@@ -117,7 +117,7 @@ def give_badge(self: Task[Any, Any], user_id: int) -> None:
         )
     except Exception as e:
         # Happens on timeout, DNS errors, etc.
-        raise self.retry(countdown=60 * 5, exc=e)
+        raise self.retry(countdown=60 * 5, exc=e) from None
     if response.status_code == 409:
         # Happens when the user already has the badge.
         raise Reject("Looks like user '{}' already has the badge".format(user.login))
@@ -134,4 +134,4 @@ def give_badge(self: Task[Any, Any], user_id: int) -> None:
         response.raise_for_status()
     except Exception as e:
         # Happens when connection was successful, but Habr is boom-boom.
-        raise self.retry(countdown=60 * 5, exc=e)
+        raise self.retry(countdown=60 * 5, exc=e) from None

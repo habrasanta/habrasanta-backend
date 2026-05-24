@@ -88,8 +88,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         """
         try:
             season = Season.objects.latest()
-        except Season.DoesNotExist:
-            raise NotFound()
+        except Season.DoesNotExist as err:
+            raise NotFound() from err
         serializer = self.get_serializer(season)
         return Response(serializer.data)
 
@@ -643,10 +643,10 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             return Participation.objects.select_related("santa", "giftee").get(
                 user=user, season=season
             )
-        except Participation.DoesNotExist:
+        except Participation.DoesNotExist as err:
             raise GenericAPIError(
                 "Ой, а вы во всем этом и не участвуете", "not_participating"
-            )
+            ) from err
 
 
 class MessageViewSet(viewsets.GenericViewSet[Message]):
@@ -900,10 +900,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         user = self.get_object()
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
-        except Participation.DoesNotExist:
+        except Participation.DoesNotExist as err:
             raise GenericAPIError(
                 "Этот пользователь не участвует в этом сезоне", "not_participating"
-            )
+            ) from err
         if not participation.giftee:
             raise NotFound("Этому пользователю еще не назначен получателя подарка")
         if participation.gift_shipped_at:
@@ -974,10 +974,10 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         user = self.get_object()
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
-        except Participation.DoesNotExist:
+        except Participation.DoesNotExist as err:
             raise GenericAPIError(
                 "Этот пользователь не участвует в этом сезоне", "not_participating"
-            )
+            ) from err
         if not hasattr(participation, "santa"):
             raise NotFound("Этому пользователю еще не назначен Дед Мороз, красный нос")
         if participation.gift_delivered_at:
@@ -1188,8 +1188,8 @@ class IndexView(View):
     def get(self, request: HttpRequest) -> HttpResponse:
         try:
             season = Season.objects.latest()
-        except Season.DoesNotExist:
-            raise Http404("No seasons")
+        except Season.DoesNotExist as err:
+            raise Http404("No seasons") from err
         if request.user.is_authenticated:
             return redirect("profile", year=season.id)
         return redirect("welcome", year=season.id)
