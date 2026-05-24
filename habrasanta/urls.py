@@ -7,7 +7,6 @@ from rest_framework import routers
 
 from habrasanta import admin, views
 
-
 router = routers.SimpleRouter(trailing_slash=False)
 router.register("countries", views.CountryViewSet, basename="country")
 router.register("events", views.EventViewSet, basename="event")

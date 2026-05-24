@@ -1,11 +1,11 @@
 import secrets
+from functools import partial
 
-from django_countries.fields import CountryField
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from functools import partial
+from django_countries.fields import CountryField
 
 from habrasanta.utils import HabrProfile, fetch_habr_profile
 

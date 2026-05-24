@@ -1,14 +1,15 @@
 from datetime import timedelta
-from django.core.management.base import BaseCommand
-from django.db import transaction
-from django.utils import timezone
-from django.db.models import Count, F
-from django.db.models.functions import Coalesce
 from functools import reduce
 from typing import Any
 
+from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.db.models import Count, F
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+
 from habrasanta.celery import send_email, send_notification
-from habrasanta.models import Season, Message, User, Participation
+from habrasanta.models import Message, Participation, Season, User
 
 
 class Command(BaseCommand):

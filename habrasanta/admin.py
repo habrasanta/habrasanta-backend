@@ -1,9 +1,9 @@
-from django_celery_results.admin import TaskResultAdmin
-from django_celery_results.models import TaskResult
 from django.contrib import admin
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.http import urlencode
+from django_celery_results.admin import TaskResultAdmin
+from django_celery_results.models import TaskResult
 
 from habrasanta.models import Event, Participation, Season, User
 

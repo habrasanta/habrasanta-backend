@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Any
 
 from celery import Celery, Task
 from celery.exceptions import Reject
 from django.conf import settings
 from django.core.mail import EmailMessage
-from typing import Any
-
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "habrasanta.settings")
 

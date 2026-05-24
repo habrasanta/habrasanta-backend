@@ -1,7 +1,8 @@
+from typing import Any, TypedDict, cast
+
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.http import HttpRequest
-from typing import Any, TypedDict, cast
 
 from habrasanta.models import User
 from habrasanta.utils import fetch_habr_profile, session

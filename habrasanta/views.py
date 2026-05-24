@@ -1,15 +1,15 @@
 import datetime
-import requests
+from typing import cast
+from urllib.parse import urlparse
 
-from django_countries import countries
+import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
 from django.db.models import Count, F, Q
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpRequest
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
-from django.shortcuts import get_object_or_404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -17,21 +17,23 @@ from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views import View
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import viewsets, status
+from django_countries import countries
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException, PermissionDenied, NotFound
-from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser
+from rest_framework.exceptions import APIException, NotFound, PermissionDenied
+from rest_framework.permissions import BasePermission, IsAdminUser, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from urllib.parse import urlparse
-from typing import cast
 
-from habrasanta.celery import send_email, send_notification, give_badge
+from habrasanta.celery import give_badge, send_email, send_notification
+from habrasanta.models import Event, Message, Participation, Season, User
 from habrasanta.serializers import (
     AsyncResultSerializer,
     BanRecordSerializer,
     EventSerializer,
+    MarkDeliveredSerializer,
+    MarkShippedSerializer,
     MessageBulkSerializer,
     MessageSerializer,
     ParticipationSerializer,
@@ -39,11 +41,8 @@ from habrasanta.serializers import (
     TestEMailSerializer,
     TestNotificationSerializer,
     UserSerializer,
-    MarkShippedSerializer,
-    MarkDeliveredSerializer,
 )
 from habrasanta.utils import HabrIsDownException
-from habrasanta.models import Event, Message, Participation, Season, User
 
 
 class GenericAPIError(APIException):

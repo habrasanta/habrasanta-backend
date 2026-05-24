@@ -1,12 +1,12 @@
 import json
-
 from datetime import timedelta
+from typing import Any
+
 from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient as OriginalAPIClient
-from typing import Any
 
 from habrasanta.models import Message, Participation, Season, User
 

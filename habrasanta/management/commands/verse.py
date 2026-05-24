@@ -1,11 +1,10 @@
 import random
-
-from django.core.management.base import BaseCommand
 from typing import Any
 
-from habrasanta.celery import send_email, send_notification
-from habrasanta.models import Season, Participation
+from django.core.management.base import BaseCommand
 
+from habrasanta.celery import send_email, send_notification
+from habrasanta.models import Participation, Season
 
 INTROS = [
     "Дед Мороз, на Хабре рос,\nБорода админа,\nТы подарки нам принёс,\nЛенивая скотина?",

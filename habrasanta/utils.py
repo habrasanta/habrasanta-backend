@@ -1,13 +1,12 @@
 import logging
-import requests
 import time
+from typing import TypedDict
 
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
-from typing import TypedDict
-
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +52,8 @@ def fetch_habr_profile(username: str) -> HabrProfile | None:
         )
         if response.status_code == 404:
             # Boomburum is changing usernames again.
-            from habrasanta.models import User
             from habrasanta.celery import send_notification
+            from habrasanta.models import User
 
             boomburum = User.objects.get(login="Boomburum")
             send_notification.delay(
