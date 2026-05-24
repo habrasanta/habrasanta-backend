@@ -1182,8 +1182,8 @@ class IndexView(View):
     def get(self, request: HttpRequest) -> HttpResponse:
         try:
             season = Season.objects.latest()
-        except Season.DoesNotExist as err:
-            raise Http404("No seasons") from err
+        except Season.DoesNotExist:
+            return redirect("season-list")  # To let the user create a new season.
         if request.user.is_authenticated:
             return redirect("profile", year=season.id)
         return redirect("welcome", year=season.id)
