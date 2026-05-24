@@ -22,22 +22,32 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
     from habrasanta.models import User
     from habrasanta.utils import session
+
     user = User.objects.get(pk=user_id)
     if not user.habr_token:
         raise Reject("The access token of user '{}' is unknown".format(user.login))
     try:
-        response = session.post("https://habr.com/api/v2/me/notifications/list", data={
-            "message": message,
-        }, headers={
-            "client": settings.HABR_CLIENT_ID,
-            "token": user.habr_token,
-        }, timeout=5)
+        response = session.post(
+            "https://habr.com/api/v2/me/notifications/list",
+            data={
+                "message": message,
+            },
+            headers={
+                "client": settings.HABR_CLIENT_ID,
+                "token": user.habr_token,
+            },
+            timeout=5,
+        )
     except Exception as e:
         # Happens on timeout, DNS errors, etc.
         raise self.retry(countdown=60 * 5, exc=e)
     if response.status_code == 401:
         # Happens when the user revoked access to their account.
-        raise Reject("Could not send notification to user '{}': {}".format(user.login, response.text))
+        raise Reject(
+            "Could not send notification to user '{}': {}".format(
+                user.login, response.text
+            )
+        )
     try:
         response.raise_for_status()
     except Exception as e:
@@ -48,24 +58,27 @@ def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
 @app.task(bind=True)
 def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> int:
     from habrasanta.models import User
+
     user = User.objects.get(pk=user_id)
     if not user.email:
         raise Reject("The email address of user '{}' is not known".format(user.login))
     if not user.email_allowed:
         raise Reject("User '{}' has prohibited sending them emails".format(user.login))
-    unsubscribe_url = "https://habra-adm.ru/backend/unsubscribe?uid={uid}&token={token}".format(
-        uid=user.habr_id,
-        token=user.email_token,
+    unsubscribe_url = (
+        "https://habra-adm.ru/backend/unsubscribe?uid={uid}&token={token}".format(
+            uid=user.habr_id,
+            token=user.email_token,
+        )
     )
     message = (
-        "{body}\n\n" +
-        "---\n\n" +
-        "Мы получили этот почтовый адрес ({email}) через API Хабра, т. к. " +
-        "вы входили на сайт habra-adm.ru.\n\n" +
-        "Если вы не хотите получать уведомления от Хабра-АДМ, просто перейдите по ссылке: {unsubscribe_url}\n\n" +
-        "Письмо может содержать конфиденциальную информацию. " +
-        "Если вы получили его по ошибке, пожалуйста, сообщите об этом support@habra-adm.ru и " +
-        "удалите это письмо. Спасибо! :-)"
+        "{body}\n\n"
+        + "---\n\n"
+        + "Мы получили этот почтовый адрес ({email}) через API Хабра, т. к. "
+        + "вы входили на сайт habra-adm.ru.\n\n"
+        + "Если вы не хотите получать уведомления от Хабра-АДМ, просто перейдите по ссылке: {unsubscribe_url}\n\n"
+        + "Письмо может содержать конфиденциальную информацию. "
+        + "Если вы получили его по ошибке, пожалуйста, сообщите об этом support@habra-adm.ru и "
+        + "удалите это письмо. Спасибо! :-)"
     ).format(
         body=body,
         email=user.email,
@@ -92,12 +105,17 @@ def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> i
 def give_badge(self: Task[Any, Any], user_id: int) -> None:
     from habrasanta.models import User
     from habrasanta.utils import session
+
     user = User.objects.get(pk=user_id)
     try:
-        response = session.post("https://habr.com/api/v2/users/{}/add_adm_badge".format(user.login), headers={
-            "client": settings.HABR_CLIENT_ID,
-            "apikey": settings.HABR_APIKEY,
-        }, timeout=5)
+        response = session.post(
+            "https://habr.com/api/v2/users/{}/add_adm_badge".format(user.login),
+            headers={
+                "client": settings.HABR_CLIENT_ID,
+                "apikey": settings.HABR_APIKEY,
+            },
+            timeout=5,
+        )
     except Exception as e:
         # Happens on timeout, DNS errors, etc.
         raise self.retry(countdown=60 * 5, exc=e)
@@ -110,7 +128,7 @@ def give_badge(self: Task[Any, Any], user_id: int) -> None:
         send_email.delay(
             boomburum.id,
             "не могу выдать значок!",
-            "Пользователя '{}' больше нет с нами.".format(user.login)
+            "Пользователя '{}' больше нет с нами.".format(user.login),
         )
         return
     try:

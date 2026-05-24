@@ -8,5 +8,6 @@ class HabrasantaConfig(AppConfig):
 
     def ready(self) -> None:
         from habrasanta import signals
+
         user_logged_in.connect(signals.log_user_login)
         user_logged_out.connect(signals.log_user_logout)

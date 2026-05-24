@@ -14,5 +14,8 @@
     "editor.insertSpaces": true,
     "files.exclude": {
         "venv": true
-    }
+    },
+    "editor.rulers": [
+        88
+    ]
 }

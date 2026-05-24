@@ -12,21 +12,38 @@ from habrasanta.utils import HabrProfile, fetch_habr_profile
 
 class User(models.Model):
     # TODO: UPPER() index
-    login = models.CharField(max_length=25, unique=True, editable=False, db_column="username")
+    login = models.CharField(
+        max_length=25, unique=True, editable=False, db_column="username"
+    )
 
     email = models.CharField(max_length=128, null=True, editable=False)
-    email_allowed = models.BooleanField("e-mail уведомления", default=True, editable=False)
-    email_token = models.CharField(default=partial(secrets.token_urlsafe, 24), editable=False, max_length=32)
+    email_allowed = models.BooleanField(
+        "e-mail уведомления", default=True, editable=False
+    )
+    email_token = models.CharField(
+        default=partial(secrets.token_urlsafe, 24), editable=False, max_length=32
+    )
 
     habr_id = models.CharField(null=True, max_length=128, unique=True, editable=False)
     habr_token = models.CharField(null=True, max_length=40, editable=False)
 
     is_banned = models.BooleanField("забанен", default=False, editable=False)
 
-    first_login = models.DateTimeField("первый вход", default=timezone.now, editable=False)
-    last_login = models.DateTimeField("последний вход", default=timezone.now, null=True, editable=False)
-    last_online = models.DateTimeField("последний online", default=timezone.now, null=True, editable=False)
-    last_chat_notification = models.DateTimeField("последнее уведомление о новых сообщениях", blank=True, null=True, editable=False)
+    first_login = models.DateTimeField(
+        "первый вход", default=timezone.now, editable=False
+    )
+    last_login = models.DateTimeField(
+        "последний вход", default=timezone.now, null=True, editable=False
+    )
+    last_online = models.DateTimeField(
+        "последний online", default=timezone.now, null=True, editable=False
+    )
+    last_chat_notification = models.DateTimeField(
+        "последнее уведомление о новых сообщениях",
+        blank=True,
+        null=True,
+        editable=False,
+    )
 
     USERNAME_FIELD = "login"
     REQUIRED_FIELDS: list[str] = []
@@ -137,8 +154,11 @@ class User(models.Model):
 
     @property
     def can_participate(self) -> bool:
-        return not self.is_banned and not self.is_readonly and (
-            self.karma >= settings.HABRASANTA_KARMA_LIMIT or self.has_badge)
+        return (
+            not self.is_banned
+            and not self.is_readonly
+            and (self.karma >= settings.HABRASANTA_KARMA_LIMIT or self.has_badge)
+        )
 
 
 class Season(models.Model):
@@ -146,8 +166,12 @@ class Season(models.Model):
 
     registration_open = models.DateTimeField("открытие регистрации")
     registration_close = models.DateTimeField("закрытие регистрации")
-    address_match = models.DateTimeField("жеребьевка адресов", editable=False, null=True,
-        help_text="Устанавливается скриптом жеребьевки автоматически")
+    address_match = models.DateTimeField(
+        "жеребьевка адресов",
+        editable=False,
+        null=True,
+        help_text="Устанавливается скриптом жеребьевки автоматически",
+    )
     season_close = models.DateTimeField("закрытие сезона")
 
     member_count = models.PositiveIntegerField(default=0, editable=False)
@@ -156,7 +180,7 @@ class Season(models.Model):
 
     gallery_url = models.URLField("пост хвастовства подарками", blank=True)
 
-    #users = models.ManyToManyField(User, related_name="seasons", through="Participation")
+    # users = models.ManyToManyField(User, related_name="seasons", through="Participation")
 
     class Meta:
         get_latest_by = "id"
@@ -184,9 +208,13 @@ class Season(models.Model):
     def clean(self) -> None:
         error_dict = {}
         if self.registration_close < self.registration_open:
-            error_dict["registration_close"] = "Регистрация не может закрыться до открытия"
+            error_dict["registration_close"] = (
+                "Регистрация не может закрыться до открытия"
+            )
         if self.season_close < self.registration_close:
-            error_dict["season_close"] = "Сезон не может закончиться до закрытия регистрации"
+            error_dict["season_close"] = (
+                "Сезон не может закончиться до закрытия регистрации"
+            )
         if len(error_dict):
             raise ValidationError(error_dict)
 
@@ -210,8 +238,12 @@ class Participation(models.Model):
     address = models.TextField("адрес", max_length=200)
     country = CountryField(verbose_name="страна", null=True)
 
-    gift_shipped_at = models.DateTimeField("подарок отправлен", blank=True, null=True, db_column="gift_sent")
-    gift_delivered_at = models.DateTimeField("подарок получен", blank=True, null=True, db_column="gift_received")
+    gift_shipped_at = models.DateTimeField(
+        "подарок отправлен", blank=True, null=True, db_column="gift_sent"
+    )
+    gift_delivered_at = models.DateTimeField(
+        "подарок получен", blank=True, null=True, db_column="gift_received"
+    )
 
     class Meta:
         unique_together = ["season", "user"]
@@ -228,16 +260,24 @@ class Message(models.Model):
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
     text = models.TextField(max_length=400, db_column="body")
-    send_date = models.DateTimeField(default=timezone.now, db_index=True, editable=False)
-    read_date = models.DateTimeField(blank=True, null=True, db_index=True, editable=False)
+    send_date = models.DateTimeField(
+        default=timezone.now, db_index=True, editable=False
+    )
+    read_date = models.DateTimeField(
+        blank=True, null=True, db_index=True, editable=False
+    )
 
     class Meta:
         ordering = ["send_date"]
 
 
 class BanRecord(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ban_history", editable=False)
-    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+", editable=False)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="ban_history", editable=False
+    )
+    admin = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="+", editable=False
+    )
     reason = models.CharField("причина", max_length=200)
     is_banned = models.BooleanField("забанен", default=False, editable=False)
     date = models.DateTimeField(default=timezone.now, editable=False)
@@ -278,10 +318,27 @@ class Event(models.Model):
     ]
 
     typ = models.IntegerField("событие", choices=TYPES)
-    sub = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="действующее лицо", related_name="events")
+    sub = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="действующее лицо",
+        related_name="events",
+    )
     obo = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="+")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, verbose_name="пользователь", related_name="+")
-    season = models.ForeignKey(Season, on_delete=models.CASCADE, null=True, verbose_name="сезон", related_name="events")
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name="пользователь",
+        related_name="+",
+    )
+    season = models.ForeignKey(
+        Season,
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name="сезон",
+        related_name="events",
+    )
     time = models.DateTimeField("дата и время", default=timezone.now)
     ip_address = models.GenericIPAddressField("IP-адрес", null=True)
 

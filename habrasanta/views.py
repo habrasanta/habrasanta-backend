@@ -50,6 +50,7 @@ class GenericAPIError(APIException):
     """
     Override APIException to avoid status code 5xx.
     """
+
     status_code = status.HTTP_418_IM_A_TEAPOT
 
 
@@ -124,11 +125,17 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         season = self.get_object()
         self.check_season_active(season)
         if not season.is_registration_open:
-            raise GenericAPIError("Регистрация на этот сезон уже невозможна", "the_die_is_cast")
+            raise GenericAPIError(
+                "Регистрация на этот сезон уже невозможна", "the_die_is_cast"
+            )
         if not user.can_participate:
-            raise PermissionDenied("Вы не можете участвовать в нашем клубе", "unqualified")
+            raise PermissionDenied(
+                "Вы не можете участвовать в нашем клубе", "unqualified"
+            )
         if Participation.objects.filter(user=user, season=season).exists():
-            raise GenericAPIError("Вы уже зарегистрированы на этот сезон", "dual_participation")
+            raise GenericAPIError(
+                "Вы уже зарегистрированы на этот сезон", "dual_participation"
+            )
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(season=season, user=user)
@@ -140,10 +147,12 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        return Response({
-            "season": SeasonSerializer(season).data,
-            "participation": serializer.validated_data,
-        })
+        return Response(
+            {
+                "season": SeasonSerializer(season).data,
+                "participation": serializer.validated_data,
+            }
+        )
 
     @participation.mapping.delete
     def cancel_participation(self, request: Request, pk: str) -> Response:
@@ -160,7 +169,9 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         self.check_season_active(season)
         participation = self.get_participation(season)
         if not season.is_registration_open:
-            raise GenericAPIError("Нельзя отказаться после окончания регистрации", "the_die_is_cast")
+            raise GenericAPIError(
+                "Нельзя отказаться после окончания регистрации", "the_die_is_cast"
+            )
         participation.delete()
         season.member_count -= 1
         season.save()
@@ -170,10 +181,12 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        return Response({
-            "season": SeasonSerializer(season).data,
-            "participation": None,
-        })
+        return Response(
+            {
+                "season": SeasonSerializer(season).data,
+                "participation": None,
+            }
+        )
 
     @action(
         detail=True,
@@ -210,42 +223,57 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             # Avoid loops of less than 3 people.
             assert giftee.giftee != santa
             # Send notifications.
-            transaction.on_commit(send_notification.s(
-                santa.user.id,
-                "Замена получателя подарка! Посмотреть адрес нового получателя можно в " +
-                "<a href=\"https://habra-adm.ru/{}/profile/\">профиле</a>.".format(season.id)
-            ).delay)
-            transaction.on_commit(send_email.s(
-                santa.user.id,
-                "замена получателя подарка",
-                "Приветствуем!\n\n" +
-                "Так получилось, что ваш Анонимный Получатель Подарка был заменён. " +
-                "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
-            ).delay)
-            transaction.on_commit(send_notification.s(
-                giftee.user.id,
-                "Замена Анонимного Деда Мороза!"
-            ).delay)
-            transaction.on_commit(send_email.s(
-                giftee.user.id,
-                "замена Деда Мороза",
-                "Приветствуем!\n\n" +
-                "Так получилось, что ваш Анонимный Дед Мороз был заменен (на не менее анонимного). " +
-                "Для выяснения причин свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
-            ).delay)
+            transaction.on_commit(
+                send_notification.s(
+                    santa.user.id,
+                    "Замена получателя подарка! Посмотреть адрес нового получателя можно в "
+                    + '<a href="https://habra-adm.ru/{}/profile/">профиле</a>.'.format(
+                        season.id
+                    ),
+                ).delay
+            )
+            transaction.on_commit(
+                send_email.s(
+                    santa.user.id,
+                    "замена получателя подарка",
+                    "Приветствуем!\n\n"
+                    + "Так получилось, что ваш Анонимный Получатель Подарка был заменён. "
+                    + "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!",
+                ).delay
+            )
+            transaction.on_commit(
+                send_notification.s(
+                    giftee.user.id, "Замена Анонимного Деда Мороза!"
+                ).delay
+            )
+            transaction.on_commit(
+                send_email.s(
+                    giftee.user.id,
+                    "замена Деда Мороза",
+                    "Приветствуем!\n\n"
+                    + "Так получилось, что ваш Анонимный Дед Мороз был заменен (на не менее анонимного). "
+                    + "Для выяснения причин свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!",
+                ).delay
+            )
             # TODO: what about private messages in the chat?
         # Send a notification to the user itself.
-        transaction.on_commit(send_notification.s(
-            user.id,
-            "Кто-то из организаторов отменил ваше участие в АДМ-{}.".format(season.id)
-        ).delay)
-        transaction.on_commit(send_email.s(
-            user.id,
-            "ваше участие отменено",
-            "Приветствуем!\n\n" +
-            "Ваше участие в АДМ-{} было отменено. ".format(season.id) +
-            "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                user.id,
+                "Кто-то из организаторов отменил ваше участие в АДМ-{}.".format(
+                    season.id
+                ),
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                user.id,
+                "ваше участие отменено",
+                "Приветствуем!\n\n"
+                + "Ваше участие в АДМ-{} было отменено. ".format(season.id)
+                + "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!",
+            ).delay
+        )
         # Update counters.
         season.member_count -= 1
         season.save()
@@ -284,7 +312,9 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         if not participation.giftee:
             raise NotFound("Вам еще не назначен получателя подарка")
         if participation.gift_shipped_at:
-            raise GenericAPIError("Вами уже был отправлен один подарок", "already_shipped")
+            raise GenericAPIError(
+                "Вами уже был отправлен один подарок", "already_shipped"
+            )
         season.shipped_count += 1
         season.save()
         participation.gift_shipped_at = timezone.now()
@@ -295,25 +325,33 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        transaction.on_commit(send_notification.s(
-            participation.giftee.user.id,
-            "Анонимный Дед Мороз отправил подарок! Когда получите, не забудьте отметить это в " +
-            "<a href=\"https://habra-adm.ru/{}/profile/\">профиле</a>.".format(season.id)
-        ).delay)
-        transaction.on_commit(send_email.s(
-            participation.giftee.user.id,
-            "Вам отправили подарок!",
-            "Привет, внук!\n\n" +
-            "Похоже, ты хорошо вёл себя в этом году - Анонимный Дед Мороз отправил тебе подарок!\n\n" +
-            "Пожалуйста, не забудь отметить в профиле " +
-            "(https://habra-adm.ru/{}/profile/), ".format(season.id) +
-            "когда получишь подарок.\n\n" +
-            "Всего наилучшего в новом году!"
-        ).delay)
-        return Response({
-            "season": self.get_serializer(season).data,
-            "participation": ParticipationSerializer(participation).data,
-        })
+        transaction.on_commit(
+            send_notification.s(
+                participation.giftee.user.id,
+                "Анонимный Дед Мороз отправил подарок! Когда получите, не забудьте отметить это в "
+                + '<a href="https://habra-adm.ru/{}/profile/">профиле</a>.'.format(
+                    season.id
+                ),
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                participation.giftee.user.id,
+                "Вам отправили подарок!",
+                "Привет, внук!\n\n"
+                + "Похоже, ты хорошо вёл себя в этом году - Анонимный Дед Мороз отправил тебе подарок!\n\n"
+                + "Пожалуйста, не забудь отметить в профиле "
+                + "(https://habra-adm.ru/{}/profile/), ".format(season.id)
+                + "когда получишь подарок.\n\n"
+                + "Всего наилучшего в новом году!",
+            ).delay
+        )
+        return Response(
+            {
+                "season": self.get_serializer(season).data,
+                "participation": ParticipationSerializer(participation).data,
+            }
+        )
 
     @action(
         detail=True,
@@ -340,9 +378,13 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         if not hasattr(participation, "santa"):
             raise NotFound("Вам еще не назначен Дед Мороз")
         if participation.gift_delivered_at:
-            raise GenericAPIError("Вами уже был получен один подарок", "already_delivered")
+            raise GenericAPIError(
+                "Вами уже был получен один подарок", "already_delivered"
+            )
         if not participation.santa.gift_shipped_at:
-            raise GenericAPIError("Нельзя получить подарок до того, как он был отправлен", "not_shipped")
+            raise GenericAPIError(
+                "Нельзя получить подарок до того, как он был отправлен", "not_shipped"
+            )
         season.delivered_count += 1
         season.save()
         participation.gift_delivered_at = timezone.now()
@@ -353,23 +395,29 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             season=season,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        transaction.on_commit(send_notification.s(
-            participation.santa.user.id,
-            "Ваш АПП отметил в профиле, что подарок получен!"
-        ).delay)
-        transaction.on_commit(send_email.s(
-            participation.santa.user.id,
-            "ваш получатель отметил, что получил подарок!",
-            "Привет, Анонимный Дед Мороз!\n\n" +
-            "Новогоднее чудо случилось — ваш Анонимный Получатель Подарка отметил, что получил подарок!\n\n" +
-            "Поздравляем и желаем всего наилучшего в новом году!"
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                participation.santa.user.id,
+                "Ваш АПП отметил в профиле, что подарок получен!",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                participation.santa.user.id,
+                "ваш получатель отметил, что получил подарок!",
+                "Привет, Анонимный Дед Мороз!\n\n"
+                + "Новогоднее чудо случилось — ваш Анонимный Получатель Подарка отметил, что получил подарок!\n\n"
+                + "Поздравляем и желаем всего наилучшего в новом году!",
+            ).delay
+        )
         # Use the task queue, because Habr is down sometimes and the badge is important for some users.
         transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
-        return Response({
-            "season": self.get_serializer(season).data,
-            "participation": ParticipationSerializer(participation).data,
-        })
+        return Response(
+            {
+                "season": self.get_serializer(season).data,
+                "participation": ParticipationSerializer(participation).data,
+            }
+        )
 
     @action(
         detail=True,
@@ -390,8 +438,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         if not participation.giftee:
             raise NotFound("Вам еще не назначен получателя подарка")
         messages = Message.objects.filter(season=season).filter(
-            Q(from_user=participation.user, to_user=participation.giftee.user) |
-            Q(from_user=participation.giftee.user, to_user=participation.user)
+            Q(from_user=participation.user, to_user=participation.giftee.user)
+            | Q(from_user=participation.giftee.user, to_user=participation.user)
         )
         serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
@@ -415,7 +463,11 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         # TODO: prevent spamming with too many messages
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(season=season, from_user=participation.user, to_user=participation.giftee.user)
+        serializer.save(
+            season=season,
+            from_user=participation.user,
+            to_user=participation.giftee.user,
+        )
         Event.objects.create(
             typ=Event.GIFTEE_MAILED,
             sub=user,
@@ -444,8 +496,8 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         if not hasattr(participation, "santa"):
             raise NotFound("Вам еще не назначен Дед Мороз")
         messages = Message.objects.filter(season=season).filter(
-            Q(from_user=participation.user, to_user=participation.santa.user) |
-            Q(from_user=participation.santa.user, to_user=participation.user)
+            Q(from_user=participation.user, to_user=participation.santa.user)
+            | Q(from_user=participation.santa.user, to_user=participation.user)
         )
         serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)
@@ -469,7 +521,11 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         # TODO: prevent spamming with too many messages
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(season=season, from_user=participation.user, to_user=participation.santa.user)
+        serializer.save(
+            season=season,
+            from_user=participation.user,
+            to_user=participation.santa.user,
+        )
         Event.objects.create(
             typ=Event.SANTA_MAILED,
             sub=user,
@@ -503,11 +559,16 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         Shows country statistics for the given season.
         """
         season = self.get_object()
-        stats = Participation.objects.filter(
-            season=season,
-        ).values("country").annotate(
-            count=Count("id"),
-        ).order_by("-count", "country")
+        stats = (
+            Participation.objects.filter(
+                season=season,
+            )
+            .values("country")
+            .annotate(
+                count=Count("id"),
+            )
+            .order_by("-count", "country")
+        )
         result = {}
         for item in stats:
             result[item["country"]] = item["count"]
@@ -524,10 +585,12 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
 
         The user calling this method must be an admin.
         """
-        return Response(Participation.objects.filter(
-            season=self.get_object(),
-            gift_delivered_at__isnull=False,
-        ).values_list("user__login", flat=True))
+        return Response(
+            Participation.objects.filter(
+                season=self.get_object(),
+                gift_delivered_at__isnull=False,
+            ).values_list("user__login", flat=True)
+        )
 
     @action(
         detail=True,
@@ -540,10 +603,12 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
 
         The user calling this method must be an admin.
         """
-        return Response(Participation.objects.filter(
-            season=self.get_object(),
-            gift_shipped_at__isnull=True,
-        ).values_list("user__login", flat=True))
+        return Response(
+            Participation.objects.filter(
+                season=self.get_object(),
+                gift_shipped_at__isnull=True,
+            ).values_list("user__login", flat=True)
+        )
 
     @action(
         detail=True,
@@ -556,15 +621,17 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
 
         The user calling this method must be an admin.
         """
-        return Response(Participation.objects.filter(
-            season=self.get_object(),
-            gift_shipped_at__isnull=False,
-            giftee__gift_delivered_at__isnull=True,
-        ).values(
-            from_user=F("user__login"),
-            to_user=F("giftee__user__login"),
-            shipped_at=F("gift_shipped_at"),
-        ))
+        return Response(
+            Participation.objects.filter(
+                season=self.get_object(),
+                gift_shipped_at__isnull=False,
+                giftee__gift_delivered_at__isnull=True,
+            ).values(
+                from_user=F("user__login"),
+                to_user=F("giftee__user__login"),
+                shipped_at=F("gift_shipped_at"),
+            )
+        )
 
     def check_season_active(self, season: Season) -> None:
         if season.is_closed:
@@ -574,13 +641,17 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         user = self.request.user
         assert isinstance(user, User)
         try:
-            return Participation.objects.select_related("santa", "giftee").get(user=user, season=season)
+            return Participation.objects.select_related("santa", "giftee").get(
+                user=user, season=season
+            )
         except Participation.DoesNotExist:
-            raise GenericAPIError("Ой, а вы во всем этом и не участвуете", "not_participating")
+            raise GenericAPIError(
+                "Ой, а вы во всем этом и не участвуете", "not_participating"
+            )
 
 
 class MessageViewSet(viewsets.GenericViewSet[Message]):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
 
     @action(
@@ -604,13 +675,13 @@ class MessageViewSet(viewsets.GenericViewSet[Message]):
             to_user=user,
             read_date__isnull=True,
             # read_date was introduced on this day, all messages before must stay NULL.
-            send_date__gte=timezone.make_aware(datetime.datetime(2016, 12, 20))
+            send_date__gte=timezone.make_aware(datetime.datetime(2016, 12, 20)),
         ).update(read_date=timezone.now())
-        return Response({ "updated": count })
+        return Response({"updated": count})
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
-    permission_classes=[IsAdminUser]
+    permission_classes = [IsAdminUser]
     serializer_class = UserSerializer
     queryset = User.objects.all()
     lookup_field = "login__iexact"
@@ -630,8 +701,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         user = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        async_result = send_notification.delay(user.id, serializer.validated_data["text"])
-        return Response(AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED)
+        async_result = send_notification.delay(
+            user.id, serializer.validated_data["text"]
+        )
+        return Response(
+            AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED
+        )
 
     @action(
         detail=True,
@@ -650,9 +725,11 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         async_result = send_email.delay(
             user.id,
             serializer.validated_data["subject"],
-            serializer.validated_data["body"]
+            serializer.validated_data["body"],
         )
-        return Response(AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED)
+        return Response(
+            AsyncResultSerializer(async_result).data, status=status.HTTP_202_ACCEPTED
+        )
 
     @action(
         detail=True,
@@ -705,7 +782,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         if user.is_banned:
             raise GenericAPIError("Пользователь '{}' уже в бане".format(user.login))
         if user == admin:
-            raise GenericAPIError("Не стоит банить самого себя (потеряете доступ в админку!)")
+            raise GenericAPIError(
+                "Не стоит банить самого себя (потеряете доступ в админку!)"
+            )
         user.is_banned = True
         user.save()
         serializer = self.get_serializer(data=request.data)
@@ -717,16 +796,20 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
             user=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        transaction.on_commit(send_notification.s(
-            user.id,
-            "Ваш аккаунт заблокирован. Для выяснения причин свяжитесь с пользователем @clubadm."
-        ).delay)
-        transaction.on_commit(send_email.s(
-            user.id,
-            "Ваш аккаунт заблокирован",
-            "Приветствуем! Ваш аккаунт в Клубе Анонимных Дедов Морозов был заблокирован.\n\n" +
-            "Для выяснения причин свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!"
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                user.id,
+                "Ваш аккаунт заблокирован. Для выяснения причин свяжитесь с пользователем @clubadm.",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                user.id,
+                "Ваш аккаунт заблокирован",
+                "Приветствуем! Ваш аккаунт в Клубе Анонимных Дедов Морозов был заблокирован.\n\n"
+                + "Для выяснения причин свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!",
+            ).delay
+        )
         return Response(serializer.data)
 
     @action(
@@ -756,17 +839,21 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
             user=user,
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
-        transaction.on_commit(send_notification.s(
-            user.id,
-            "Ваш аккаунт разблокирован. Желаем вам счастливого Нового Года и Рождества! :-)"
-        ).delay)
-        transaction.on_commit(send_email.s(
-            user.id,
-            "Ваш аккаунт разблокирован",
-            "Приветствуем!\n\n" +
-            "Ваш аккаунт в Клубе Анонимных Дедов Морозов был разблокирован.\n\n" +
-            "Поздравляем и желаем всего наилучшего в новом году!"
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                user.id,
+                "Ваш аккаунт разблокирован. Желаем вам счастливого Нового Года и Рождества! :-)",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                user.id,
+                "Ваш аккаунт разблокирован",
+                "Приветствуем!\n\n"
+                + "Ваш аккаунт в Клубе Анонимных Дедов Морозов был разблокирован.\n\n"
+                + "Поздравляем и желаем всего наилучшего в новом году!",
+            ).delay
+        )
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"])
@@ -783,7 +870,9 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         assert isinstance(admin, User)
         user = self.get_object()
         if user.email_allowed:
-            raise GenericAPIError("Пользователь '{}' уже подписан на email-уведомления".format(user.login))
+            raise GenericAPIError(
+                "Пользователь '{}' уже подписан на email-уведомления".format(user.login)
+            )
         user.email_allowed = True
         user.save()
         Event.objects.create(
@@ -813,11 +902,15 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
         except Participation.DoesNotExist:
-            raise GenericAPIError("Этот пользователь не участвует в этом сезоне", "not_participating")
+            raise GenericAPIError(
+                "Этот пользователь не участвует в этом сезоне", "not_participating"
+            )
         if not participation.giftee:
             raise NotFound("Этому пользователю еще не назначен получателя подарка")
         if participation.gift_shipped_at:
-            raise GenericAPIError("Этот пользователь уже отправил подарок", "already_shipped")
+            raise GenericAPIError(
+                "Этот пользователь уже отправил подарок", "already_shipped"
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         participation.season.shipped_count += 1
@@ -832,29 +925,38 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
             ip_address=request.META.get("HTTP_X_REAL_IP"),
         )
         # Notifications for the user themselves:
-        transaction.on_commit(send_notification.s(
-            user.id,
-            "Лучше поздно, чем никогда - спасибо, что отправили подарок!"
-        ).delay)
-        transaction.on_commit(send_email.s(
-            user.id,
-            "запоздавшее новогоднее волшебство",
-            "Лучше поздно, чем никогда - спасибо, что отправили подарок!"
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                user.id, "Лучше поздно, чем никогда - спасибо, что отправили подарок!"
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                user.id,
+                "запоздавшее новогоднее волшебство",
+                "Лучше поздно, чем никогда - спасибо, что отправили подарок!",
+            ).delay
+        )
         # Notifications for their giftee:
-        transaction.on_commit(send_notification.s(
-            participation.giftee.user.id,
-            "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!"
-        ).delay)
-        transaction.on_commit(send_email.s(
-            participation.giftee.user.id,
-            "запоздавшее новогоднее волшебство",
-            "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!"
-        ).delay)
-        return Response({
-            "season": SeasonSerializer(participation.season).data,
-            "participation": ParticipationSerializer(participation).data,
-        })
+        transaction.on_commit(
+            send_notification.s(
+                participation.giftee.user.id,
+                "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                participation.giftee.user.id,
+                "запоздавшее новогоднее волшебство",
+                "Лучше поздно, чем никогда: администраторы сервиса получили подтверждение отправки вам подарка, ожидайте!",
+            ).delay
+        )
+        return Response(
+            {
+                "season": SeasonSerializer(participation.season).data,
+                "participation": ParticipationSerializer(participation).data,
+            }
+        )
 
     @action(
         detail=True,
@@ -874,13 +976,19 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         try:
             participation = Participation.objects.get(user=user, season_id=season_id)
         except Participation.DoesNotExist:
-            raise GenericAPIError("Этот пользователь не участвует в этом сезоне", "not_participating")
+            raise GenericAPIError(
+                "Этот пользователь не участвует в этом сезоне", "not_participating"
+            )
         if not hasattr(participation, "santa"):
             raise NotFound("Этому пользователю еще не назначен Дед Мороз, красный нос")
         if participation.gift_delivered_at:
-            raise GenericAPIError("Этим пользователем уже был получен подарок", "already_delivered")
+            raise GenericAPIError(
+                "Этим пользователем уже был получен подарок", "already_delivered"
+            )
         if not participation.santa.gift_shipped_at:
-            raise GenericAPIError("Нельзя получить подарок до того, как он был отправлен", "not_shipped")
+            raise GenericAPIError(
+                "Нельзя получить подарок до того, как он был отправлен", "not_shipped"
+            )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         participation.season.delivered_count += 1
@@ -897,36 +1005,46 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         # Use the task queue, because Habr is down sometimes and the badge is important for some users.
         transaction.on_commit(give_badge.s(participation.santa.user.id).delay)
         # Notifications for the user themselves:
-        transaction.on_commit(send_notification.s(
-            user.id,
-            "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас."
-        ).delay)
-        transaction.on_commit(send_email.s(
-            user.id,
-            "запоздавшее новогоднее волшебство",
-            "Приветствуем!\n\n" +
-            "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас."
-        ).delay)
+        transaction.on_commit(
+            send_notification.s(
+                user.id,
+                "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас.",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                user.id,
+                "запоздавшее новогоднее волшебство",
+                "Приветствуем!\n\n"
+                + "Вы забыли отметить получение подарка, поэтому администраторы сервиса сделали это за вас.",
+            ).delay
+        )
         # Notifications for their santa:
-        transaction.on_commit(send_notification.s(
-            participation.santa.user.id,
-            "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него. Спасибо за участие!"
-        ).delay)
-        transaction.on_commit(send_email.s(
-            participation.santa.user.id,
-            "запоздавшее новогоднее волшебство",
-            "Привет, Анонимный Дед Мороз!\n\n" +
-            "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него.\n\n" +
-            "Спасибо за участие!"
-        ).delay)
-        return Response({
-            "season": SeasonSerializer(participation.season).data,
-            "participation": ParticipationSerializer(participation).data,
-        })
+        transaction.on_commit(
+            send_notification.s(
+                participation.santa.user.id,
+                "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него. Спасибо за участие!",
+            ).delay
+        )
+        transaction.on_commit(
+            send_email.s(
+                participation.santa.user.id,
+                "запоздавшее новогоднее волшебство",
+                "Привет, Анонимный Дед Мороз!\n\n"
+                + "Ваш получатель подарка куда-то пропал или забыл отметить, что получил подарок. Поэтому подтверждаем получение подарка за него.\n\n"
+                + "Спасибо за участие!",
+            ).delay
+        )
+        return Response(
+            {
+                "season": SeasonSerializer(participation.season).data,
+                "participation": ParticipationSerializer(participation).data,
+            }
+        )
 
 
 class EventViewSet(viewsets.ReadOnlyModelViewSet[Event]):
-    permission_classes=[IsAdminUser]
+    permission_classes = [IsAdminUser]
     serializer_class = EventSerializer
     queryset = Event.objects.all()
 
@@ -941,10 +1059,18 @@ class CountryViewSet(viewsets.ViewSet):
         """
         Lists all accepted countries.
         """
-        return Response(sorted([{
-            "code": code,
-            "name": name,
-        } for code, name in countries], key=lambda c: c["name"]))
+        return Response(
+            sorted(
+                [
+                    {
+                        "code": code,
+                        "name": name,
+                    }
+                    for code, name in countries
+                ],
+                key=lambda c: c["name"],
+            )
+        )
 
 
 class InfoView(APIView):
@@ -968,9 +1094,9 @@ class InfoView(APIView):
                 data["is_active"] = not user.is_banned
                 data["can_participate"] = user.can_participate
             except requests.exceptions.Timeout as e:
-                return Response({ "error": str(e) }, status=504)
+                return Response({"error": str(e)}, status=504)
             except HabrIsDownException as e:
-                return Response({ "error": str(e) }, status=500)
+                return Response({"error": str(e)}, status=500)
         return Response(data)
 
 
@@ -981,17 +1107,25 @@ class LoginView(View):
             next_url = "/"
         if request.user.is_authenticated:
             return HttpResponseRedirect(next_url)
-        redirect_uri = reverse("callback") + "?" + urlencode({ "next": next_url }) # TODO: move to state
+        redirect_uri = (
+            reverse("callback") + "?" + urlencode({"next": next_url})
+        )  # TODO: move to state
         if settings.DEBUG:
             authorize_url = reverse("fake_authorize")
         else:
             authorize_url = settings.HABR_LOGIN_URL
-        login_url = authorize_url + "?" + urlencode({
-            "client_id": settings.HABR_CLIENT_ID,
-            "response_type": "code",
-            "redirect_uri": request.build_absolute_uri(redirect_uri),
-            "state": get_token(request),
-        })
+        login_url = (
+            authorize_url
+            + "?"
+            + urlencode(
+                {
+                    "client_id": settings.HABR_CLIENT_ID,
+                    "response_type": "code",
+                    "redirect_uri": request.build_absolute_uri(redirect_uri),
+                    "state": get_token(request),
+                }
+            )
+        )
         return HttpResponseRedirect(login_url)
 
 
@@ -1026,17 +1160,29 @@ class LogoutView(View):
 
 class FakeAuthorizeView(View):
     def get(self, request: HttpRequest) -> HttpResponse:
-        return render(request, "habrasanta/fake_authorize.html", {
-            "redirect_uri": request.GET.get("redirect_uri"),
-            "state": request.GET.get("state"),
-        })
+        return render(
+            request,
+            "habrasanta/fake_authorize.html",
+            {
+                "redirect_uri": request.GET.get("redirect_uri"),
+                "state": request.GET.get("state"),
+            },
+        )
 
     def post(self, request: HttpRequest) -> HttpResponse:
         url = urlparse(request.POST.get("redirect_uri") or "")
-        return HttpResponseRedirect(url.path + "?" + urlencode({
-            "code": request.POST.get("username") or "",
-            "state": request.POST.get("state") or "",
-        }) + "&" + url.query)
+        return HttpResponseRedirect(
+            url.path
+            + "?"
+            + urlencode(
+                {
+                    "code": request.POST.get("username") or "",
+                    "state": request.POST.get("state") or "",
+                }
+            )
+            + "&"
+            + url.query
+        )
 
 
 class IndexView(View):
@@ -1056,35 +1202,57 @@ class FrontendView(View):
         user = request.user
         if not user.is_anonymous:
             assert isinstance(user, User)
-            if not user.last_online or user.last_online < now - datetime.timedelta(minutes=15):
+            if not user.last_online or user.last_online < now - datetime.timedelta(
+                minutes=15
+            ):
                 user.last_online = now
                 user.save()
         season = get_object_or_404(Season, id=year)
-        return render(request, "habrasanta/frontend.html", {
-            "season": SeasonSerializer(season).data,
-        })
+        return render(
+            request,
+            "habrasanta/frontend.html",
+            {
+                "season": SeasonSerializer(season).data,
+            },
+        )
 
 
-@csrf_exempt # already validated by email_token
+@csrf_exempt  # already validated by email_token
 def unsubscribe(request: HttpRequest) -> HttpResponse:
     if "uid" not in request.GET:
-        return render(request, "habrasanta/unsubscribed.html", {
-            "error": "отсутствует ID пользователя",
-        })
+        return render(
+            request,
+            "habrasanta/unsubscribed.html",
+            {
+                "error": "отсутствует ID пользователя",
+            },
+        )
     try:
         user = User.objects.get(habr_id=request.GET.get("uid"))
     except User.DoesNotExist:
-        return render(request, "habrasanta/unsubscribed.html", {
-            "error": "пользователь с таким ID не найден",
-        })
+        return render(
+            request,
+            "habrasanta/unsubscribed.html",
+            {
+                "error": "пользователь с таким ID не найден",
+            },
+        )
     if user.email_token != request.GET.get("token"):
-        return render(request, "habrasanta/unsubscribed.html", {
-            "error": "токен невалиден для этого пользователя",
-        })
+        return render(
+            request,
+            "habrasanta/unsubscribed.html",
+            {
+                "error": "токен невалиден для этого пользователя",
+            },
+        )
     if not user.email_allowed:
-        return render(request, "habrasanta/unsubscribed.html", {
-            "error": "у нас уже отмечено, что вы не хотите получать наши письма",
-        })
+        return render(
+            request,
+            "habrasanta/unsubscribed.html",
+            {
+                "error": "у нас уже отмечено, что вы не хотите получать наши письма",
+            },
+        )
     if request.method == "POST":
         Event.objects.create(
             typ=Event.UNSUBSCRIBED,
@@ -1093,14 +1261,22 @@ def unsubscribe(request: HttpRequest) -> HttpResponse:
         )
         user.email_allowed = False
         user.save()
-        return render(request, "habrasanta/unsubscribed.html", {
+        return render(
+            request,
+            "habrasanta/unsubscribed.html",
+            {
+                "email": user.email,
+            },
+        )
+    return render(
+        request,
+        "habrasanta/unsubscribe.html",
+        {
             "email": user.email,
-        })
-    return render(request, "habrasanta/unsubscribe.html", {
-        "email": user.email,
-        "uid": user.habr_id,
-        "token": user.email_token,
-    })
+            "uid": user.habr_id,
+            "token": user.email_token,
+        },
+    )
 
 
 class HealthView(View):

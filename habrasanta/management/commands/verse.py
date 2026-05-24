@@ -32,7 +32,16 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         season = Season.objects.latest()
         assert not season.is_closed
-        for participant in Participation.objects.filter(season=season, gift_shipped_at=None):
-            text = "\n\n".join([random.choice(INTROS), random.choice(VERSES), random.choice(OUTROS), PS])
+        for participant in Participation.objects.filter(
+            season=season, gift_shipped_at=None
+        ):
+            text = "\n\n".join(
+                [
+                    random.choice(INTROS),
+                    random.choice(VERSES),
+                    random.choice(OUTROS),
+                    PS,
+                ]
+            )
             send_notification.delay(participant.user.id, text)
             send_email.delay(participant.user.id, "не забудьте отправить подарок", text)

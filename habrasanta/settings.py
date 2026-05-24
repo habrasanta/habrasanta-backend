@@ -113,7 +113,7 @@ LOGGING = {
             "level": "DEBUG",
             "handlers": ["console"],
         },
-    }
+    },
 }
 
 # Send debugging information to kafeman when the site crashes.
@@ -129,19 +129,24 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [
-  BASE_DIR / "dist"
-]
+STATICFILES_DIRS = [BASE_DIR / "dist"]
 WHITENOISE_IMMUTABLE_FILE_TEST = r"^.+[.-][0-9a-zA-Z_-]{8,12}\..+$"
 
-DJANGO_VITE_DEV_MODE = os.getenv("DJANGO_VITE_DEV_MODE", "True").lower() in ("true", "yes", "on", "1")
+DJANGO_VITE_DEV_MODE = os.getenv("DJANGO_VITE_DEV_MODE", "True").lower() in (
+    "true",
+    "yes",
+    "on",
+    "1",
+)
 
 LOGIN_URL = "login"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "habrasanta.User"
-AUTHENTICATION_BACKENDS = [os.getenv("AUTHENTICATION_BACKEND", "habrasanta.auth.FakeBackend")]
+AUTHENTICATION_BACKENDS = [
+    os.getenv("AUTHENTICATION_BACKEND", "habrasanta.auth.FakeBackend")
+]
 
 HABR_CLIENT_ID = os.getenv("HABR_CLIENT_ID", "")
 HABR_CLIENT_SECRET = os.getenv("HABR_CLIENT_SECRET", "")
@@ -152,7 +157,9 @@ HABR_USER_INFO_URL = "https://habr.com/api/v2/me"
 HABR_USER_AGENT = os.getenv("HABR_USER_AGENT", "Habrasanta/1.0 (open source)")
 
 DEFAULT_FROM_EMAIL = "Хабра-АДМ <noreply@mailgun.habrasanta.org>"
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")

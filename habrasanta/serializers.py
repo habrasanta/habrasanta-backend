@@ -26,9 +26,17 @@ class SeasonSerializer(serializers.ModelSerializer[Season]):
 class UserSerializer(serializers.ModelSerializer[User]):
     class Meta:
         model = User
-        fields = ["id", "login", "is_staff", "is_active", "can_participate", "email_allowed", "last_online"]
+        fields = [
+            "id",
+            "login",
+            "is_staff",
+            "is_active",
+            "can_participate",
+            "email_allowed",
+            "last_online",
+        ]
         extra_kwargs = {
-            "url": { "lookup_field": "login" },
+            "url": {"lookup_field": "login"},
         }
 
 
@@ -57,13 +65,24 @@ class GifteeSerializer(CountryFieldMixin, serializers.ModelSerializer[Participat
         read_only_fields = fields
 
 
-class ParticipationSerializer(CountryFieldMixin, serializers.ModelSerializer[Participation]):
+class ParticipationSerializer(
+    CountryFieldMixin, serializers.ModelSerializer[Participation]
+):
     santa = SantaSerializer(read_only=True)
     giftee = GifteeSerializer(read_only=True)
 
     class Meta:
         model = Participation
-        fields = ["fullname", "postcode", "address", "country", "gift_shipped_at", "gift_delivered_at", "giftee", "santa"]
+        fields = [
+            "fullname",
+            "postcode",
+            "address",
+            "country",
+            "gift_shipped_at",
+            "gift_delivered_at",
+            "giftee",
+            "santa",
+        ]
         read_only_fields = ["gift_shipped_at", "gift_delivered_at"]
         extra_kwargs = {
             # Required for all new participants now.
@@ -78,7 +97,7 @@ class UserInfoSerializer(serializers.ModelSerializer[User]):
 
 
 class MessageBulkSerializer(serializers.Serializer[object]):
-    ids = serializers.ListField(child = serializers.IntegerField(min_value=0))
+    ids = serializers.ListField(child=serializers.IntegerField(min_value=0))
 
 
 class TestNotificationSerializer(serializers.Serializer[object]):

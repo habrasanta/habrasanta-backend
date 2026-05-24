@@ -28,13 +28,38 @@ urlpatterns = [
     path("backend/health", views.HealthView.as_view(), name="health"),
     path("django_admin/", admin.site.urls),
     path("api/schema", SpectacularAPIView.as_view(), name="schema"),
-    path("api/explorer", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
-    path("terms", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/terms.html"))),
-    path("privacy", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/privacy.html"))),
-    path("robots.txt", cache_control(public=True, max_age=60*60*24)(TemplateView.as_view(template_name="habrasanta/robots.txt", content_type="text/plain"))),
+    path(
+        "api/explorer",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+    path(
+        "terms",
+        cache_control(public=True, max_age=60 * 60 * 24)(
+            TemplateView.as_view(template_name="habrasanta/terms.html")
+        ),
+    ),
+    path(
+        "privacy",
+        cache_control(public=True, max_age=60 * 60 * 24)(
+            TemplateView.as_view(template_name="habrasanta/privacy.html")
+        ),
+    ),
+    path(
+        "robots.txt",
+        cache_control(public=True, max_age=60 * 60 * 24)(
+            TemplateView.as_view(
+                template_name="habrasanta/robots.txt", content_type="text/plain"
+            )
+        ),
+    ),
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        path("backend/fake_authorize", views.FakeAuthorizeView.as_view(), name="fake_authorize"),
+        path(
+            "backend/fake_authorize",
+            views.FakeAuthorizeView.as_view(),
+            name="fake_authorize",
+        ),
     ]

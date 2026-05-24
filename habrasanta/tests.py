@@ -29,7 +29,10 @@ class UserTestCase(TestCase):
         self.assertEqual(u.karma, 42)
         self.assertFalse(u.has_badge)
         self.assertFalse(u.is_readonly)
-        self.assertEqual(u.avatar_url, "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif")
+        self.assertEqual(
+            u.avatar_url,
+            "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif",
+        )
         u._profile = {
             "login": "whatever",
             "karma": 0,
@@ -40,7 +43,10 @@ class UserTestCase(TestCase):
         self.assertEqual(u.karma, 0)
         self.assertTrue(u.has_badge)
         self.assertTrue(u.is_readonly)
-        self.assertEqual(u.avatar_url, "//habrastorage.org/getpro/habr/avatars/7bf/80e/da6/7bf80eda638211ca4a38ed48b4058c2d.png")
+        self.assertEqual(
+            u.avatar_url,
+            "//habrastorage.org/getpro/habr/avatars/7bf/80e/da6/7bf80eda638211ca4a38ed48b4058c2d.png",
+        )
 
     def test_django_getters(self) -> None:
         u = User(login="kafeman")
@@ -52,15 +58,45 @@ class UserTestCase(TestCase):
 
     def test_can_participate(self) -> None:
         u = User()
-        u._profile = { "login": "whatever", "karma": 0, "has_badge": False, "is_readonly": False, "avatar_url": None }
+        u._profile = {
+            "login": "whatever",
+            "karma": 0,
+            "has_badge": False,
+            "is_readonly": False,
+            "avatar_url": None,
+        }
         self.assertFalse(u.can_participate)
-        u._profile = { "login": "whatever", "karma": 0, "has_badge": True, "is_readonly": False, "avatar_url": None }
+        u._profile = {
+            "login": "whatever",
+            "karma": 0,
+            "has_badge": True,
+            "is_readonly": False,
+            "avatar_url": None,
+        }
         self.assertTrue(u.can_participate)
-        u._profile = { "login": "whatever", "karma": 100, "has_badge": False, "is_readonly": False, "avatar_url": None }
+        u._profile = {
+            "login": "whatever",
+            "karma": 100,
+            "has_badge": False,
+            "is_readonly": False,
+            "avatar_url": None,
+        }
         self.assertTrue(u.can_participate)
-        u._profile = { "login": "whatever", "karma": 100, "has_badge": True, "is_readonly": True, "avatar_url": None }
+        u._profile = {
+            "login": "whatever",
+            "karma": 100,
+            "has_badge": True,
+            "is_readonly": True,
+            "avatar_url": None,
+        }
         self.assertFalse(u.can_participate)
-        u._profile = { "login": "whatever", "karma": 100, "has_badge": True, "is_readonly": False, "avatar_url": None }
+        u._profile = {
+            "login": "whatever",
+            "karma": 100,
+            "has_badge": True,
+            "is_readonly": False,
+            "avatar_url": None,
+        }
         u.is_banned = True
         self.assertFalse(u.can_participate)
 
@@ -90,6 +126,7 @@ class SeasonTestCase(TestCase):
         self.assertFalse(s.is_matched)
         s.address_match = timezone.now()
         self.assertTrue(s.is_matched)
+
 
 class SeasonViewSetTestCase(TestCase):
     def test_list(self) -> None:
@@ -125,14 +162,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         client.force_authenticate(user=User(login="exploitable"))
         response = client.post("/api/v1/seasons")
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
@@ -143,12 +180,15 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["registration_open"], ["Обязательное поле."])
         self.assertEqual(obj["registration_close"], ["Обязательное поле."])
         self.assertEqual(obj["season_close"], ["Обязательное поле."])
-        response = client.post("/api/v1/seasons", {
-            "id": 2007,
-            "registration_open": "2007-11-01T00:00:00Z",
-            "registration_close": "2007-11-01T00:00:00Z",
-            "season_close": "2007-11-01T00:00:00Z",
-        })
+        response = client.post(
+            "/api/v1/seasons",
+            {
+                "id": 2007,
+                "registration_open": "2007-11-01T00:00:00Z",
+                "registration_close": "2007-11-01T00:00:00Z",
+                "season_close": "2007-11-01T00:00:00Z",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["id"], 2007)
@@ -168,8 +208,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.get("/api/v1/seasons/2007")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         Season.objects.create(
             id=2007,
@@ -195,14 +234,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         client.force_authenticate(user=User(login="exploitable"))
         response = client.get("/api/v1/seasons/2007/events")
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not really interested in this method now,
         # just make sure only admins may access it...
@@ -213,15 +252,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.get("/api/v1/seasons/2007/giftee_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -233,7 +271,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -243,7 +281,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вам еще не назначен получателя подарка"
+            "Вам еще не назначен получателя подарка",
         )
         another_user = User.objects.create(login="kafeman")
         giftee = Participation.objects.create(
@@ -282,15 +320,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/seasons/2007/giftee_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -301,8 +338,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/giftee_chat")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=1),
@@ -311,7 +347,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -321,7 +357,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вам еще не назначен получателя подарка"
+            "Вам еще не назначен получателя подарка",
         )
         another_user = User.objects.create(login="kafeman")
         giftee = Participation.objects.create(
@@ -334,9 +370,12 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], ["Обязательное поле."])
-        response = client.post("/api/v1/seasons/2007/giftee_chat", {
-            "text": "Hello World",
-        })
+        response = client.post(
+            "/api/v1/seasons/2007/giftee_chat",
+            {
+                "text": "Hello World",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], "Hello World")
@@ -350,15 +389,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.get("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -370,7 +408,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -379,8 +417,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.get("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Вам еще не назначен Дед Мороз"
+            json.loads(response.content)["detail"], "Вам еще не назначен Дед Мороз"
         )
         another_user = User.objects.create(login="kafeman")
         santa = Participation.objects.create(
@@ -418,15 +455,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -437,8 +473,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=1),
@@ -447,7 +482,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -456,8 +491,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/santa_chat")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Вам еще не назначен Дед Мороз"
+            json.loads(response.content)["detail"], "Вам еще не назначен Дед Мороз"
         )
         another_user = User.objects.create(login="kafeman")
         santa = Participation.objects.create(
@@ -469,9 +503,12 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], ["Обязательное поле."])
-        response = client.post("/api/v1/seasons/2007/santa_chat", {
-            "text": "Hello World",
-        })
+        response = client.post(
+            "/api/v1/seasons/2007/santa_chat",
+            {
+                "text": "Hello World",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["text"], "Hello World")
@@ -485,15 +522,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -504,8 +540,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=1),
@@ -514,7 +549,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -523,8 +558,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Вам еще не назначен Дед Мороз"
+            json.loads(response.content)["detail"], "Вам еще не назначен Дед Мороз"
         )
         another_user = User.objects.create(login="kafeman")
         santa = Participation.objects.create(
@@ -536,7 +570,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Нельзя получить подарок до того, как он был отправлен"
+            "Нельзя получить подарок до того, как он был отправлен",
         )
         santa.gift_shipped_at = timezone.now()
         santa.save()
@@ -549,8 +583,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Вами уже был получен один подарок"
+            json.loads(response.content)["detail"], "Вами уже был получен один подарок"
         )
 
     def test_mark_shipped(self) -> None:
@@ -559,15 +592,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -578,8 +610,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=1),
@@ -588,7 +619,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         participation = Participation.objects.create(
             season=season,
@@ -598,7 +629,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вам еще не назначен получателя подарка"
+            "Вам еще не назначен получателя подарка",
         )
         another_user = User.objects.create(login="kafeman")
         giftee = Participation.objects.create(
@@ -617,7 +648,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вами уже был отправлен один подарок"
+            "Вами уже был отправлен один подарок",
         )
 
     def test_participation(self) -> None:
@@ -626,15 +657,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.get("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -646,7 +676,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         Participation.objects.create(
             season=season,
@@ -674,15 +704,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         Season.objects.create(
             id=2007,
@@ -693,8 +722,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.post("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=2),
@@ -703,31 +731,39 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Регистрация на этот сезон уже невозможна"
+            "Регистрация на этот сезон уже невозможна",
         )
         Season.objects.filter(pk=2007).update(
             registration_close=timezone.now() + timedelta(hours=1),
         )
         # Trick the code by setting some fake data in the cache...
-        cache.set("profile:exploitable", {
-            "karma": 0,
-            "has_badge": False,
-            "is_readonly": False,
-        }, 5)
+        cache.set(
+            "profile:exploitable",
+            {
+                "karma": 0,
+                "has_badge": False,
+                "is_readonly": False,
+            },
+            5,
+        )
         response = client.post("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вы не можете участвовать в нашем клубе"
+            "Вы не можете участвовать в нашем клубе",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         # Trick the code by setting some fake data in the cache...
-        cache.set("profile:kafeman", {
-            "karma": 100,
-            "has_badge": True,
-            "is_readonly": False,
-        }, 5)
+        cache.set(
+            "profile:kafeman",
+            {
+                "karma": 100,
+                "has_badge": True,
+                "is_readonly": False,
+            },
+            5,
+        )
         response = client.post("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 400)
         obj = json.loads(response.content)
@@ -735,12 +771,15 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["postcode"], ["Обязательное поле."])
         self.assertEqual(obj["address"], ["Обязательное поле."])
         self.assertEqual(obj["country"], ["Обязательное поле."])
-        response = client.post("/api/v1/seasons/2007/participation", {
-            "fullname": "Kafe Man",
-            "postcode": "12345",
-            "address": "Kafeman St. 42\nKafecity",
-            "country": "AL",
-        })
+        response = client.post(
+            "/api/v1/seasons/2007/participation",
+            {
+                "fullname": "Kafe Man",
+                "postcode": "12345",
+                "address": "Kafeman St. 42\nKafecity",
+                "country": "AL",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["season"]["id"], 2007)
@@ -749,16 +788,19 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(obj["participation"]["postcode"], "12345")
         self.assertEqual(obj["participation"]["address"], "Kafeman St. 42\nKafecity")
         self.assertEqual(obj["participation"]["country"], "AL")
-        response = client.post("/api/v1/seasons/2007/participation", {
-            "fullname": "Kafe Man",
-            "postcode": "12345",
-            "address": "Kafeman St. 42\nKafecity",
-            "country": "AL",
-        })
+        response = client.post(
+            "/api/v1/seasons/2007/participation",
+            {
+                "fullname": "Kafe Man",
+                "postcode": "12345",
+                "address": "Kafeman St. 42\nKafecity",
+                "country": "AL",
+            },
+        )
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Вы уже зарегистрированы на этот сезон"
+            "Вы уже зарегистрированы на этот сезон",
         )
 
     def test_cancel_participation(self) -> None:
@@ -767,15 +809,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         response = client.delete("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -786,8 +827,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.delete("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Этот сезон находится в архиве"
+            json.loads(response.content)["detail"], "Этот сезон находится в архиве"
         )
         Season.objects.filter(pk=2007).update(
             season_close=timezone.now() + timedelta(hours=2),
@@ -796,7 +836,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Ой, а вы во всем этом и не участвуете"
+            "Ой, а вы во всем этом и не участвуете",
         )
         Participation.objects.create(
             season=season,
@@ -806,11 +846,11 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Нельзя отказаться после окончания регистрации"
+            "Нельзя отказаться после окончания регистрации",
         )
         Season.objects.filter(pk=2007).update(
             registration_close=timezone.now() + timedelta(hours=1),
-            member_count=1, # Otherwise member_count becomes negative.
+            member_count=1,  # Otherwise member_count becomes negative.
         )
         response = client.delete("/api/v1/seasons/2007/participation")
         self.assertEqual(response.status_code, 200)
@@ -823,10 +863,7 @@ class SeasonViewSetTestCase(TestCase):
         client = APIClient()
         response = client.get("/api/v1/seasons/latest")
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Страница не найдена."
-        )
+        self.assertEqual(json.loads(response.content)["detail"], "Страница не найдена.")
         Season.objects.create(
             id=2007,
             registration_open=timezone.now() - timedelta(hours=3),
@@ -849,8 +886,7 @@ class SeasonViewSetTestCase(TestCase):
         response = client.get("/api/v1/seasons/2007/countries")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         Season.objects.create(
             id=2007,
@@ -869,7 +905,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -877,15 +913,14 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.delete("/api/v1/seasons/2007/participants/negasus")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No Season matches the given query."
+            json.loads(response.content)["detail"], "No Season matches the given query."
         )
         season = Season.objects.create(
             id=2007,
@@ -899,20 +934,26 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "No Participation matches the given query."
+            "No Participation matches the given query.",
         )
         boomburum = User.objects.create(login="Boomburum")
         inzeppelin = User.objects.create(login="inzeppelin")
         deniskin = User.objects.create(login="deniskin")
         negasus_p = Participation.objects.create(season=season, user=negasus)
-        boomburum_p = Participation.objects.create(season=season, user=boomburum, giftee=negasus_p)
-        inzeppelin_p = Participation.objects.create(season=season, user=inzeppelin, giftee=boomburum_p)
-        deniskin_p = Participation.objects.create(season=season, user=deniskin, giftee=inzeppelin_p)
+        boomburum_p = Participation.objects.create(
+            season=season, user=boomburum, giftee=negasus_p
+        )
+        inzeppelin_p = Participation.objects.create(
+            season=season, user=inzeppelin, giftee=boomburum_p
+        )
+        deniskin_p = Participation.objects.create(
+            season=season, user=deniskin, giftee=inzeppelin_p
+        )
         negasus_p.giftee = deniskin_p
         negasus_p.save()
         self.assertEqual(
             Participation.objects.get(user=boomburum).giftee,
-            Participation.objects.get(user=negasus)
+            Participation.objects.get(user=negasus),
         )
         response = client.delete("/api/v1/seasons/2007/participants/negasus")
         self.assertEqual(response.status_code, 204)
@@ -920,7 +961,7 @@ class SeasonViewSetTestCase(TestCase):
         self.assertEqual(Participation.objects.count(), 3)
         self.assertEqual(
             Participation.objects.get(user=boomburum).giftee,
-            Participation.objects.get(user=deniskin)
+            Participation.objects.get(user=deniskin),
         )
 
 
@@ -931,7 +972,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -939,7 +980,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -950,7 +991,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -958,7 +999,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -969,7 +1010,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -977,30 +1018,32 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/users/negasus/ban")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No User matches the given query."
+            json.loads(response.content)["detail"], "No User matches the given query."
         )
         response = client.post("/api/v1/users/kafeman/ban")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Не стоит банить самого себя (потеряете доступ в админку!)"
+            "Не стоит банить самого себя (потеряете доступ в админку!)",
         )
         User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/ban")
         self.assertEqual(response.status_code, 400)
         obj = json.loads(response.content)
         self.assertEqual(obj["reason"], ["Обязательное поле."])
-        response = client.post("/api/v1/users/negasus/ban", {
-            "reason": "just for fun",
-        })
+        response = client.post(
+            "/api/v1/users/negasus/ban",
+            {
+                "reason": "just for fun",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["reason"], "just for fun")
@@ -1008,8 +1051,7 @@ class UserViewSetTestCase(TestCase):
         response = client.post("/api/v1/users/negasus/ban")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "Пользователь 'negasus' уже в бане"
+            json.loads(response.content)["detail"], "Пользователь 'negasus' уже в бане"
         )
 
     def test_unban(self) -> None:
@@ -1018,7 +1060,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1026,33 +1068,38 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/users/negasus/unban")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No User matches the given query."
+            json.loads(response.content)["detail"], "No User matches the given query."
         )
         User.objects.create(login="negasus")
-        response = client.post("/api/v1/users/negasus/unban", {
-            "reason": "sorry, that was enough fun",
-        })
+        response = client.post(
+            "/api/v1/users/negasus/unban",
+            {
+                "reason": "sorry, that was enough fun",
+            },
+        )
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Пользователь 'negasus' уже разбанен"
+            "Пользователь 'negasus' уже разбанен",
         )
         User.objects.filter(login="negasus").update(is_banned=True)
         response = client.post("/api/v1/users/negasus/unban")
         self.assertEqual(response.status_code, 400)
         obj = json.loads(response.content)
         self.assertEqual(obj["reason"], ["Обязательное поле."])
-        response = client.post("/api/v1/users/negasus/unban", {
-            "reason": "sorry, that was enough fun",
-        })
+        response = client.post(
+            "/api/v1/users/negasus/unban",
+            {
+                "reason": "sorry, that was enough fun",
+            },
+        )
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
         self.assertEqual(obj["reason"], "sorry, that was enough fun")
@@ -1064,7 +1111,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1072,7 +1119,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1083,7 +1130,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1091,7 +1138,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1102,7 +1149,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1110,7 +1157,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1121,7 +1168,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1129,7 +1176,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1140,7 +1187,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1148,31 +1195,34 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/users/negasus/allow_emails")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No User matches the given query."
+            json.loads(response.content)["detail"], "No User matches the given query."
         )
         User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/allow_emails")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Пользователь 'negasus' уже подписан на email-уведомления"
+            "Пользователь 'negasus' уже подписан на email-уведомления",
         )
         User.objects.filter(login="negasus").update(email_allowed=False)
         # Trick the code by setting some fake data in the cache...
-        cache.set("profile:negasus", {
-            "karma": 135,
-            "has_badge": True,
-            "is_readonly": False,
-            "avatar_url": "//habrastorage.org/getpro/habr/avatars/74a/1b6/c64/74a1b6c647c673df32177e355647ac71.jpg",
-        }, 5)
+        cache.set(
+            "profile:negasus",
+            {
+                "karma": 135,
+                "has_badge": True,
+                "is_readonly": False,
+                "avatar_url": "//habrastorage.org/getpro/habr/avatars/74a/1b6/c64/74a1b6c647c673df32177e355647ac71.jpg",
+            },
+            5,
+        )
         response = client.post("/api/v1/users/negasus/allow_emails")
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
@@ -1185,7 +1235,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1193,22 +1243,21 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No User matches the given query."
+            json.loads(response.content)["detail"], "No User matches the given query."
         )
         user = User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_shipped")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этот пользователь не участвует в этом сезоне"
+            "Этот пользователь не участвует в этом сезоне",
         )
         season = Season.objects.create(
             id=2007,
@@ -1224,7 +1273,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этому пользователю еще не назначен получателя подарка"
+            "Этому пользователю еще не назначен получателя подарка",
         )
         user = User.objects.create(login="Boomburum")
         participation.giftee = Participation.objects.create(
@@ -1238,7 +1287,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этот пользователь уже отправил подарок"
+            "Этот пользователь уже отправил подарок",
         )
 
     def test_mark_delivered(self) -> None:
@@ -1247,7 +1296,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1255,22 +1304,21 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         user = User.objects.create(login="kafeman")
         client.force_authenticate(user=user)
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            json.loads(response.content)["detail"],
-            "No User matches the given query."
+            json.loads(response.content)["detail"], "No User matches the given query."
         )
         user = User.objects.create(login="negasus")
         response = client.post("/api/v1/users/negasus/seasons/2007/mark_delivered")
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этот пользователь не участвует в этом сезоне"
+            "Этот пользователь не участвует в этом сезоне",
         )
         season = Season.objects.create(
             id=2007,
@@ -1286,7 +1334,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этому пользователю еще не назначен Дед Мороз, красный нос"
+            "Этому пользователю еще не назначен Дед Мороз, красный нос",
         )
         user = User.objects.create(login="Boomburum")
         participation.santa = Participation.objects.create(
@@ -1299,7 +1347,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Нельзя получить подарок до того, как он был отправлен"
+            "Нельзя получить подарок до того, как он был отправлен",
         )
         participation.santa.gift_shipped_at = timezone.now() - timedelta(hours=1)
         participation.santa.save()
@@ -1309,7 +1357,7 @@ class UserViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 418)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Этим пользователем уже был получен подарок"
+            "Этим пользователем уже был получен подарок",
         )
 
 
@@ -1330,7 +1378,7 @@ class EventViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1338,7 +1386,7 @@ class EventViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1349,7 +1397,7 @@ class EventViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
@@ -1357,7 +1405,7 @@ class EventViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "У вас недостаточно прав для выполнения данного действия."
+            "У вас недостаточно прав для выполнения данного действия.",
         )
         # TODO: We're not interested in this method now,
         # so just make sure normal users cannot access it...
@@ -1375,12 +1423,16 @@ class BackendViewTestCase(TestCase):
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
         # Trick the code by setting some fake data in the cache...
-        cache.set("profile:exploitable", {
-            "karma": 2,
-            "has_badge": False,
-            "is_readonly": False,
-            "avatar_url": None,
-        }, 5)
+        cache.set(
+            "profile:exploitable",
+            {
+                "karma": 2,
+                "has_badge": False,
+                "is_readonly": False,
+                "avatar_url": None,
+            },
+            5,
+        )
         response = client.get("/backend/info")
         self.assertEqual(response.status_code, 200)
         obj = json.loads(response.content)
@@ -1388,7 +1440,10 @@ class BackendViewTestCase(TestCase):
         self.assertTrue(obj["is_active"])
         self.assertFalse(obj["can_participate"])
         self.assertEqual(obj["username"], "exploitable")
-        self.assertEqual(obj["avatar_url"], "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif")
+        self.assertEqual(
+            obj["avatar_url"],
+            "https://hsto.org/storage/habrastock/i/avatars/stub-user-middle.gif",
+        )
         self.assertEqual(obj["karma"], 2)
         self.assertFalse(obj["is_readonly"])
         self.assertFalse(obj["has_badge"])
@@ -1401,13 +1456,16 @@ class MessageViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(
             json.loads(response.content)["detail"],
-            "Учетные данные не были предоставлены."
+            "Учетные данные не были предоставлены.",
         )
         user = User.objects.create(login="exploitable")
         client.force_authenticate(user=user)
-        response = client.post("/api/v1/messages/mark_read", {
-            "ids": [1, 2, 3],
-        })
+        response = client.post(
+            "/api/v1/messages/mark_read",
+            {
+                "ids": [1, 2, 3],
+            },
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content)["updated"], 0)
         # TODO: add more tests...

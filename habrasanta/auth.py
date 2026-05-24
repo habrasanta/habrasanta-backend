@@ -19,6 +19,7 @@ class PublicHabrBackend(ModelBackend):
 
     This backend authenticates users using the Habr's semi-public API.
     """
+
     def authenticate(
         self,
         request: HttpRequest | None,
@@ -27,12 +28,15 @@ class PublicHabrBackend(ModelBackend):
         authorization_code: str | None = None,
         **kwargs: Any,
     ) -> User | None:
-        response = session.post(settings.HABR_TOKEN_URL, data={
-            "grant_type": "authorization_code",
-            "code": authorization_code,
-            "client_id": settings.HABR_CLIENT_ID,
-            "client_secret": settings.HABR_CLIENT_SECRET,
-        })
+        response = session.post(
+            settings.HABR_TOKEN_URL,
+            data={
+                "grant_type": "authorization_code",
+                "code": authorization_code,
+                "client_id": settings.HABR_CLIENT_ID,
+                "client_secret": settings.HABR_CLIENT_SECRET,
+            },
+        )
         if response.status_code != 200:
             return None
         data = response.json()
@@ -63,10 +67,13 @@ class PublicHabrBackend(ModelBackend):
     def fetch_profile(self, access_token: str | None) -> UserInfo | None:
         if not access_token:
             return None
-        response = session.get(settings.HABR_USER_INFO_URL, headers={
-            "client": settings.HABR_CLIENT_ID,
-            "token": access_token,
-        })
+        response = session.get(
+            settings.HABR_USER_INFO_URL,
+            headers={
+                "client": settings.HABR_CLIENT_ID,
+                "token": access_token,
+            },
+        )
         if response.status_code != 200:
             return None
         return cast(UserInfo, response.json())
@@ -77,6 +84,7 @@ class FakeBackend(ModelBackend):
     This backend skips the authorization step during development, yet real Habr
     profiles are still used (make sure the environment variable HABR_APIKEY is set).
     """
+
     def authenticate(
         self,
         request: HttpRequest | None,
