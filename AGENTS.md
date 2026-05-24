@@ -8,14 +8,20 @@ The website runs in a Docker container in production, using PostgreSQL as the da
 
 If something about the architecture is unclear, better ask than guess. Always ask if you believe an action you're trying to perform is dangerous.
 
+If you believe there is a mistake in these instructions, e.g. they are outdated and do not match the project anymore, tell the user.
+
 ## Backend
 
-The backend code is in the `habrasanta/` directory. A Django project and a Django app are both combined in the same directory for simplicity.
+The backend code is in the `habrasanta/` directory. It is a single-app Django project. Both the configuration (e.g. `wsgi.py`, `settings.py`) and the app (e.g. `views.py`, `models.py`) are in the same directory for simplicity.
 
-Always work in a virtual environment from the `venv/` directory. Never try installing something globally.
+Always work in the virtual environment from the `venv/` directory. Never try installing something globally.
 
-To run the tests, you need a Redis instance. Start it by using `podman run -d --rm -p 127.0.0.1:6379:6379 docker.io/library/redis:8-alpine`. Stop it when you finished testing.
+The project has some unit tests which you can run via `venv/bin/python manage.py test`. Sometimes it is better to adjust the tests instead of trying to replicate the old behavior. In this case, stop and ask the user.
+
+The source code must pass strict MyPy validation. Use `venv/bin/mypy habrasanta/` to check.
+
+The project uses Ruff as the linter and formatter. Use `venv/bin/ruff check habrasanta/` and `venv/bin/ruff format --check habrasanta/` to check.
 
 ## Frontend
 
-The frontend code is in the `src/` directory. It uses Preact and is written in TypeScript, the build system is WebPack.
+The frontend code is in the `src/` directory. It uses Preact and is written in TypeScript, the build system is Vite.

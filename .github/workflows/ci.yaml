@@ -9,27 +9,27 @@ permissions:
 
 jobs:
   test:
-    name: Test Python
+    name: test backend
     runs-on: ubuntu-latest
-    container: python:3.13-alpine
-    services:
-      redis:
-        image: redis:alpine
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests
         run: python manage.py test
         env:
-          REDIS_URL: redis://redis
           DJANGO_VITE_DEV_MODE: False
 
   mypy:
     runs-on: ubuntu-latest
-    container: python:3.13-alpine
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
       - run: pip install -r requirements.txt
       - run: pip install mypy django-stubs djangorestframework-stubs celery-types
       - run: mypy habrasanta/
@@ -47,7 +47,6 @@ jobs:
       - run: ruff format --check habrasanta/
 
   docker:
-    name: Deploy Docker image
     needs:
       - test
       - mypy

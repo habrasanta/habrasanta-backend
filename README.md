@@ -21,7 +21,6 @@ Visit https://beta.habrasanta.org or join other Secret Santas on https://habra-a
 $ python3 -m venv venv
 $ source venv/bin/activate
 $ pip install -r requirements.txt
-$ docker run --rm -p 6379:6379 redis:alpine
 $ python manage.py migrate
 $ python manage.py runserver
 ```
@@ -75,7 +74,9 @@ For all containers, set the following environment variables:
 | `DB_USER` | Username to connect to the DB. |
 | `DB_PASS` | Password to connect to the DB. |
 | `DB_HOST` | IP address or hostname of the DB. |
-| `REDIS_URL` | Where to find redis? E.g. `redis://redis.example.com/1` |
+| `CACHE_BACKEND` | Which cache adapter to use, e.g. `django.core.cache.backends.redis.RedisCache`. Check out [this](https://docs.djangoproject.com/en/6.0/topics/cache/) and [this](https://docs.djangoproject.com/en/6.0/ref/settings/#std-setting-CACHES-BACKEND) to learn more. |
+| `CACHE_LOCATION` | Where to find the cache backend, e.g. `redis://localhost`. |
+| `CELERY_BROKER_URL` | Where to find redis? E.g. `redis://redis.example.com/1` |
 | `HABR_CLIENT_ID` | Client ID for access to the Habr API. |
 | `HABR_CLIENT_SECRET` | Client secret for access to the Habr API. |
 | `HABR_APIKEY` | API key for access to the Habr API. |
