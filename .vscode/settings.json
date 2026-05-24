@@ -13,7 +13,13 @@
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
     "files.exclude": {
-        "venv": true
+        ".mypy_cache/": true,
+        ".pytype/": true,
+        ".ruff_cache/": true,
+        "**/__pycache__/": true,
+        "db.sqlite3": true,
+        "node_modules/": true,
+        "venv/": true,
     },
     "editor.rulers": [
         88
