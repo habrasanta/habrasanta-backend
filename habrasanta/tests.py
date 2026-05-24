@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient as OriginalAPIClient
-from typing import Any, cast
+from typing import Any
 
 from habrasanta.models import Message, Participation, Season, User
 
@@ -648,7 +648,7 @@ class SeasonViewSetTestCase(TestCase):
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
         )
-        participation = Participation.objects.create(
+        Participation.objects.create(
             season=season,
             user=user,
             fullname="Kafe Man",
@@ -684,7 +684,7 @@ class SeasonViewSetTestCase(TestCase):
             json.loads(response.content)["detail"],
             "No Season matches the given query."
         )
-        season = Season.objects.create(
+        Season.objects.create(
             id=2007,
             registration_open=timezone.now() - timedelta(hours=3),
             registration_close=timezone.now() - timedelta(hours=2),
@@ -798,7 +798,7 @@ class SeasonViewSetTestCase(TestCase):
             json.loads(response.content)["detail"],
             "Ой, а вы во всем этом и не участвуете"
         )
-        participation = Participation.objects.create(
+        Participation.objects.create(
             season=season,
             user=user,
         )

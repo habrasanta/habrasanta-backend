@@ -1,15 +1,12 @@
 import datetime
-import html
-import json
 import requests
 
 from django_countries import countries
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, F, Q
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, HttpRequest
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpRequest
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect, render
@@ -18,9 +15,9 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views import View
-from django.views.decorators.cache import cache_control, never_cache
+from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import permissions, mixins, viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, PermissionDenied, NotFound
 from rest_framework.permissions import BasePermission, IsAuthenticated, IsAdminUser
@@ -41,12 +38,11 @@ from habrasanta.serializers import (
     SeasonSerializer,
     TestEMailSerializer,
     TestNotificationSerializer,
-    UserInfoSerializer,
     UserSerializer,
     MarkShippedSerializer,
     MarkDeliveredSerializer,
 )
-from habrasanta.utils import fetch_habr_profile, HabrIsDownException
+from habrasanta.utils import HabrIsDownException
 from habrasanta.models import Event, Message, Participation, Season, User
 
 
@@ -1071,7 +1067,7 @@ class FrontendView(View):
 
 @csrf_exempt # already validated by email_token
 def unsubscribe(request: HttpRequest) -> HttpResponse:
-    if not "uid" in request.GET:
+    if "uid" not in request.GET:
         return render(request, "habrasanta/unsubscribed.html", {
             "error": "отсутствует ID пользователя",
         })

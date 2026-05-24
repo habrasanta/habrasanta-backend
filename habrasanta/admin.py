@@ -1,7 +1,6 @@
 from django_celery_results.admin import TaskResultAdmin
 from django_celery_results.models import TaskResult
 from django.contrib import admin
-from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.http import urlencode
