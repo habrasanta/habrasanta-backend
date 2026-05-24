@@ -24,7 +24,7 @@ def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
 
     user = User.objects.get(pk=user_id)
     if not user.habr_token:
-        raise Reject("The access token of user '{}' is unknown".format(user.login))
+        raise Reject(f"The access token of user '{user.login}' is unknown")
     try:
         response = session.post(
             "https://habr.com/api/v2/me/notifications/list",
@@ -43,9 +43,7 @@ def send_notification(self: Task[Any, Any], user_id: int, message: str) -> None:
     if response.status_code == 401:
         # Happens when the user revoked access to their account.
         raise Reject(
-            "Could not send notification to user '{}': {}".format(
-                user.login, response.text
-            )
+            f"Could not send notification to user '{user.login}': {response.text}"
         )
     try:
         response.raise_for_status()
@@ -60,15 +58,10 @@ def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> i
 
     user = User.objects.get(pk=user_id)
     if not user.email:
-        raise Reject("The email address of user '{}' is not known".format(user.login))
+        raise Reject(f"The email address of user '{user.login}' is not known")
     if not user.email_allowed:
-        raise Reject("User '{}' has prohibited sending them emails".format(user.login))
-    unsubscribe_url = (
-        "https://habra-adm.ru/backend/unsubscribe?uid={uid}&token={token}".format(
-            uid=user.habr_id,
-            token=user.email_token,
-        )
-    )
+        raise Reject(f"User '{user.login}' has prohibited sending them emails")
+    unsubscribe_url = f"https://habra-adm.ru/backend/unsubscribe?uid={user.habr_id}&token={user.email_token}"
     message = (
         "{body}\n\n"
         + "---\n\n"
@@ -84,14 +77,14 @@ def send_email(self: Task[Any, Any], user_id: int, subject: str, body: str) -> i
         unsubscribe_url=unsubscribe_url,
     )
     headers = {
-        "Message-ID": "<{}@habra-adm.ru>".format(self.request.id),
+        "Message-ID": f"<{self.request.id}@habra-adm.ru>",
         "Reply-To": "Хабра-АДМ <support@habra-adm.ru>",
-        "List-Unsubscribe": "<{}>".format(unsubscribe_url),
+        "List-Unsubscribe": f"<{unsubscribe_url}>",
     }
     email = EmailMessage(
         "Клуб анонимных Дедов Морозов на Хабре: " + subject,
         message,
-        to=["{} <{}>".format(user.login, user.email)],
+        to=[f"{user.login} <{user.email}>"],
         headers=headers,
     )
     try:
@@ -108,7 +101,7 @@ def give_badge(self: Task[Any, Any], user_id: int) -> None:
     user = User.objects.get(pk=user_id)
     try:
         response = session.post(
-            "https://habr.com/api/v2/users/{}/add_adm_badge".format(user.login),
+            f"https://habr.com/api/v2/users/{user.login}/add_adm_badge",
             headers={
                 "client": settings.HABR_CLIENT_ID,
                 "apikey": settings.HABR_APIKEY,
@@ -120,14 +113,14 @@ def give_badge(self: Task[Any, Any], user_id: int) -> None:
         raise self.retry(countdown=60 * 5, exc=e) from None
     if response.status_code == 409:
         # Happens when the user already has the badge.
-        raise Reject("Looks like user '{}' already has the badge".format(user.login))
+        raise Reject(f"Looks like user '{user.login}' already has the badge")
     if response.status_code == 404:
         # Boomburum is changing usernames again.
         boomburum = User.objects.get(login="Boomburum")
         send_email.delay(
             boomburum.id,
             "не могу выдать значок!",
-            "Пользователя '{}' больше нет с нами.".format(user.login),
+            f"Пользователя '{user.login}' больше нет с нами.",
         )
         return
     try:

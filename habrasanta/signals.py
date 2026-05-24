@@ -14,7 +14,7 @@ def log_user_login(
         send_email.delay(
             user.id,
             "произведен вход в ваш аккаунт",
-            "Приветствуем, {}!\n\n".format(user.login)
+            f"Приветствуем, {user.login}!\n\n"
             + "Так как у вас имеется доступ в админку Хабра-АДМ, то мы вынуждены проинформировать вас о новом входе под вашим аккаунтом:\n\n"
             + "IP-адрес: {}\n".format(request.META.get("HTTP_X_REAL_IP"))
             + "User-Agent: {}\n\n".format(

@@ -186,7 +186,7 @@ class Season(models.Model):
         verbose_name_plural = "сезоны"
 
     def __str__(self) -> str:
-        return "АДМ {}".format(self.id)
+        return f"АДМ {self.id}"
 
     @property
     def is_closed(self) -> bool:
@@ -251,7 +251,7 @@ class Participation(models.Model):
         ]
 
     def __str__(self) -> str:
-        return "{} @ {}".format(self.user, self.season)
+        return f"{self.user} @ {self.season}"
 
 
 class Message(models.Model):

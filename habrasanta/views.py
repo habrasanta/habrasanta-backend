@@ -226,9 +226,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
                 send_notification.s(
                     santa.user.id,
                     "Замена получателя подарка! Посмотреть адрес нового получателя можно в "
-                    + '<a href="https://habra-adm.ru/{}/profile/">профиле</a>.'.format(
-                        season.id
-                    ),
+                    + f'<a href="https://habra-adm.ru/{season.id}/profile/">профиле</a>.',
                 ).delay
             )
             transaction.on_commit(
@@ -259,9 +257,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
         transaction.on_commit(
             send_notification.s(
                 user.id,
-                "Кто-то из организаторов отменил ваше участие в АДМ-{}.".format(
-                    season.id
-                ),
+                f"Кто-то из организаторов отменил ваше участие в АДМ-{season.id}.",
             ).delay
         )
         transaction.on_commit(
@@ -269,7 +265,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
                 user.id,
                 "ваше участие отменено",
                 "Приветствуем!\n\n"
-                + "Ваше участие в АДМ-{} было отменено. ".format(season.id)
+                + f"Ваше участие в АДМ-{season.id} было отменено. "
                 + "Для выяснения подробностей свяжитесь с пользователем @clubadm на Хабре - возможно, ещё не всё потеряно!",
             ).delay
         )
@@ -328,9 +324,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
             send_notification.s(
                 participation.giftee.user.id,
                 "Анонимный Дед Мороз отправил подарок! Когда получите, не забудьте отметить это в "
-                + '<a href="https://habra-adm.ru/{}/profile/">профиле</a>.'.format(
-                    season.id
-                ),
+                + f'<a href="https://habra-adm.ru/{season.id}/profile/">профиле</a>.',
             ).delay
         )
         transaction.on_commit(
@@ -340,7 +334,7 @@ class SeasonViewSet(viewsets.ReadOnlyModelViewSet[Season]):
                 "Привет, внук!\n\n"
                 + "Похоже, ты хорошо вёл себя в этом году - Анонимный Дед Мороз отправил тебе подарок!\n\n"
                 + "Пожалуйста, не забудь отметить в профиле "
-                + "(https://habra-adm.ru/{}/profile/), ".format(season.id)
+                + f"(https://habra-adm.ru/{season.id}/profile/), "
                 + "когда получишь подарок.\n\n"
                 + "Всего наилучшего в новом году!",
             ).delay
@@ -779,7 +773,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         assert isinstance(admin, User)
         user = self.get_object()
         if user.is_banned:
-            raise GenericAPIError("Пользователь '{}' уже в бане".format(user.login))
+            raise GenericAPIError(f"Пользователь '{user.login}' уже в бане")
         if user == admin:
             raise GenericAPIError(
                 "Не стоит банить самого себя (потеряете доступ в админку!)"
@@ -826,7 +820,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         assert isinstance(admin, User)
         user = self.get_object()
         if not user.is_banned:
-            raise GenericAPIError("Пользователь '{}' уже разбанен".format(user.login))
+            raise GenericAPIError(f"Пользователь '{user.login}' уже разбанен")
         user.is_banned = False
         user.save()
         serializer = self.get_serializer(data=request.data)
@@ -870,7 +864,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[User]):
         user = self.get_object()
         if user.email_allowed:
             raise GenericAPIError(
-                "Пользователь '{}' уже подписан на email-уведомления".format(user.login)
+                f"Пользователь '{user.login}' уже подписан на email-уведомления"
             )
         user.email_allowed = True
         user.save()

@@ -44,7 +44,7 @@ def fetch_habr_profile(username: str) -> HabrProfile | None:
     if not profile:
         start = time.time()
         response = session.get(
-            "https://habr.com/api/v2/users/{}/card".format(username),
+            f"https://habr.com/api/v2/users/{username}/card",
             headers={
                 "apikey": settings.HABR_APIKEY,
             },
@@ -57,22 +57,20 @@ def fetch_habr_profile(username: str) -> HabrProfile | None:
 
             boomburum = User.objects.get(login="Boomburum")
             send_notification.delay(
-                boomburum.id, "Пользователя '{}' больше нет с нами.".format(username)
+                boomburum.id, f"Пользователя '{username}' больше нет с нами."
             )
             return None
         if response.status_code == 502:
             raise HabrIsDownException()
         if response.status_code != 200:
             logger.warning(
-                "Request to {} failed: got status code {}".format(
-                    response.url, response.status_code
-                )
+                f"Request to {response.url} failed: got status code {response.status_code}"
             )
             logger.warning(response.text)
             return None
         card = response.json()
         response = session.get(
-            "https://habr.com/api/v2/users/{}/whois".format(username),
+            f"https://habr.com/api/v2/users/{username}/whois",
             headers={
                 "apikey": settings.HABR_APIKEY,
             },
@@ -82,19 +80,13 @@ def fetch_habr_profile(username: str) -> HabrProfile | None:
             raise HabrIsDownException()
         if response.status_code != 200:
             logger.warning(
-                "Request to {} failed: got status code {}".format(
-                    response.url, response.status_code
-                )
+                f"Request to {response.url} failed: got status code {response.status_code}"
             )
             logger.warning(response.text)
             return None
         whois = response.json()
         end = time.time()
-        print(
-            "Fetched Habr user '{}' in {:.3f} ms.".format(
-                username, (end - start) * 1000
-            )
-        )
+        print(f"Fetched Habr user '{username}' in {(end - start) * 1000:.3f} ms.")
         profile = {
             "login": card["alias"],
             "avatar_url": card["avatarUrl"],

@@ -30,7 +30,7 @@ class Command(BaseCommand):
             except Season.DoesNotExist:
                 self.stdout.write("No address matching needed")
                 return  # Nothing to do.
-            self.stdout.write("Gonna match {}...".format(season))
+            self.stdout.write(f"Gonna match {season}...")
             clusters = [["RU"], ["BY"], []]
             for cluster in clusters:
                 participants = Participation.objects.filter(season=season).order_by("?")
@@ -65,9 +65,7 @@ class Command(BaseCommand):
                         send_notification.s(
                             participant.user.id,
                             "Вам назначен получатель подарка. Посмотреть адрес можно в "
-                            + '<a href="https://habra-adm.ru/{}/profile/">профиле</a>.'.format(
-                                season.id
-                            ),
+                            + f'<a href="https://habra-adm.ru/{season.id}/profile/">профиле</a>.',
                         ).delay
                     )
                     transaction.on_commit(
@@ -76,14 +74,12 @@ class Command(BaseCommand):
                             "пора отправлять подарок",
                             "Привет, Анонимный Дед Мороз!\n\n"
                             + "Вам назначен получатель подарка. Посмотреть адрес внука можно в профиле: "
-                            + "https://habra-adm.ru/{}/profile/".format(season.id),
+                            + f"https://habra-adm.ru/{season.id}/profile/",
                         ).delay
                     )
             season.address_match = timezone.now()
             season.save()
-            self.stdout.write(
-                self.style.SUCCESS("Season {} matched!".format(season.id))
-            )
+            self.stdout.write(self.style.SUCCESS(f"Season {season.id} matched!"))
 
     def send_chat_notifications(self, *args: Any, **options: Any) -> None:
         """
