@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 (
                     "email_token",
                     models.CharField(
-                        default=functools.partial(secrets.token_urlsafe, *(24,), **{}),
+                        default=functools.partial(secrets.token_urlsafe, 24),
                         editable=False,
                         max_length=32,
                     ),
@@ -239,6 +239,7 @@ class Migration(migrations.Migration):
                         "Может видеть почтовый адрес участника",
                     )
                 ],
+                "unique_together": {("season", "user")},
             },
         ),
         migrations.CreateModel(
@@ -325,6 +326,7 @@ class Migration(migrations.Migration):
                             (12, "Отмена отправки"),
                             (13, "Новый сезон"),
                             (14, "Отписка от EMail"),
+                            (15, "Подписка на EMail"),
                         ],
                         verbose_name="событие",
                     ),
@@ -427,9 +429,5 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-        ),
-        migrations.AlterUniqueTogether(
-            name="participation",
-            unique_together={("season", "user")},
         ),
     ]
